@@ -122,3 +122,25 @@ func (r *reverb) process(l, rr float64) (float64, float64) {
 	}
 	return ol, or
 }
+
+func (f *biquad) lowPass(fc, q float64) {
+	w := 2 * math.Pi * fc / SampleRate
+	c, al := math.Cos(w), math.Sin(w)/(2*q)
+	f.set((1-c)/2, 1-c, (1-c)/2, 1+al, -2*c, 1-al)
+}
+
+func (f *biquad) highPass(fc, q float64) {
+	w := 2 * math.Pi * fc / SampleRate
+	c, al := math.Cos(w), math.Sin(w)/(2*q)
+	f.set((1+c)/2, -(1 + c), (1+c)/2, 1+al, -2*c, 1-al)
+}
+
+func (f *biquad) lowShelf(fc, db float64) {
+	A := math.Pow(10, db/40)
+	w := 2 * math.Pi * fc / SampleRate
+	c, s := math.Cos(w), math.Sin(w)
+	al := s / 2 * math.Sqrt2
+	sa := 2 * math.Sqrt(A) * al
+	f.set(A*((A+1)-(A-1)*c+sa), 2*A*((A-1)-(A+1)*c), A*((A+1)-(A-1)*c-sa),
+		(A+1)+(A-1)*c+sa, -2*((A-1)+(A+1)*c), (A+1)+(A-1)*c-sa)
+}

@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/codypowpow-afk/piano-player/assets"
 	"github.com/codypowpow-afk/piano-player/synth"
 )
 
@@ -57,9 +58,20 @@ func main() {
 	}
 	evs, pedal := passage()
 	const length = 17.0
+	only := map[string]bool{}
+	for _, a := range os.Args[2:] {
+		only[a] = true
+	}
 	for pi, p := range synth.Presets {
-		e := synth.NewEngine()
-		e.SetPreset(pi)
+		if len(only) > 0 && !only[p.Name] {
+			continue
+		}
+		e := synth.NewEngine(assets.FS)
+		lt := time.Now()
+		if err := e.SetPreset(pi); err != nil {
+			panic(err)
+		}
+		loadT := time.Since(lt)
 		total := int(length * synth.SampleRate)
 		data := make([]float32, total*2)
 		chunk := 256
@@ -103,8 +115,9 @@ func main() {
 		rms := math.Sqrt(sq / float64(len(data)))
 		name := filepath.Join(out, strings.ReplaceAll(strings.ToLower(p.Name), " ", "-")+".wav")
 		writeWav(name, data)
-		fmt.Printf("%-14s cpu %.1f%% of realtime  peak %.2f (%.1f dBFS)  rms %.1f dBFS  max voices %d -> %s\n",
-			p.Name, 100*el.Seconds()/length, peak, 20*math.Log10(peak), 20*math.Log10(rms), maxVoices, name)
+		fmt.Printf("%-18s load %5.2fs  cpu %4.1f%%  peak %5.1f dBFS  rms %5.1f dBFS  voices %d\n",
+			p.Name, loadT.Seconds(), 100*el.Seconds()/length, 20*math.Log10(peak), 20*math.Log10(rms), maxVoices)
+		_ = name
 	}
 }
 

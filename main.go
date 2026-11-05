@@ -10,6 +10,7 @@ import (
 	"math"
 	"math/rand"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -21,16 +22,17 @@ import (
 	"golang.org/x/image/font/gofont/gobold"
 	"golang.org/x/image/font/gofont/goregular"
 
+	"github.com/codypowpow-afk/piano-player/assets"
 	"github.com/codypowpow-afk/piano-player/internal/appicon"
 	"github.com/codypowpow-afk/piano-player/synth"
 )
 
 const (
 	screenW = 1400
-	screenH = 520
+	screenH = 600
 
 	kbX     = 24
-	kbY     = 214
+	kbY     = 320
 	whiteW  = 26
 	whiteH  = 236
 	blackW  = 16
@@ -110,13 +112,18 @@ type Game struct {
 	rnd     *rand.Rand
 	meter   float64
 
-	midi       midiState
-	midiIn     midiInput
-	kbPedal    atomic.Bool
-	midiSeen   int64
-	midiFlashT time.Time
+	want        atomic.Int32 // preset the user asked for (loading may lag behind)
+	loading     atomic.Bool
+	midiProgram atomic.Int32 // pending MIDI program change + 1
+	midi        midiState
+	midiIn      midiInput
+	kbPedal     atomic.Bool
+	midiSeen    int64
+	midiFlashT  time.Time
 
 	face, faceSmall, faceBold, faceTitle text.Face
+	faceBtn, faceTiny                    text.Face
+	flashMu                              sync.Mutex
 	flash                                string
 	flashT                               time.Time
 }
@@ -136,7 +143,7 @@ func noteName(m int) string {
 
 func newGame() *Game {
 	g := &Game{
-		eng:       synth.NewEngine(),
+		eng:       synth.NewEngine(assets.FS),
 		base:      48,
 		held:      map[ebiten.Key]int{},
 		touch:     0.62,
@@ -168,12 +175,14 @@ func newGame() *Game {
 	g.faceSmall = &text.GoTextFace{Source: bold, Size: 11}
 	g.faceBold = &text.GoTextFace{Source: bold, Size: 16}
 	g.faceTitle = &text.GoTextFace{Source: bold, Size: 26}
+	g.faceBtn = &text.GoTextFace{Source: bold, Size: 14}
+	g.faceTiny = &text.GoTextFace{Source: bold, Size: 9}
 
 	pct := func(v float64) string { return fmt.Sprintf("%d%%", int(math.Round(v*100))) }
 	g.sliders = []*slider{
-		{label: "VOLUME", x: 870, y: 66, w: 150, value: &g.volume, min: 0, max: 1.2, format: pct},
-		{label: "ROOM", x: 1050, y: 66, w: 150, value: &g.reverb, min: 0, max: 2, format: pct},
-		{label: "TOUCH  ↑↓", x: 1230, y: 66, w: 146, value: &g.touch, min: 0.1, max: 1, format: func(v float64) string {
+		{label: "VOLUME", x: sideX, y: 58, w: sideW, value: &g.volume, min: 0, max: 1.2, format: pct},
+		{label: "ROOM / REVERB", x: sideX, y: 104, w: sideW, value: &g.reverb, min: 0, max: 2, format: pct},
+		{label: "TOUCH (computer keys)  ↑↓", x: sideX, y: 150, w: sideW, value: &g.touch, min: 0.1, max: 1, format: func(v float64) string {
 			dyn := []string{"ppp", "pp", "p", "mp", "mf", "f", "ff", "fff"}
 			i := int((v - 0.1) / 0.9 * float64(len(dyn)))
 			if i >= len(dyn) {
@@ -193,6 +202,7 @@ func newGame() *Game {
 	g.player = p
 	g.midi.curve.Store(1)
 	g.midiIn = startMIDI(g.handleMIDI)
+	g.setPreset(0)
 	return g
 }
 
@@ -225,13 +235,48 @@ func (g *Game) keyVelocity() float64 {
 	return math.Max(0.05, math.Min(1, v))
 }
 
+// setPreset selects preset i. Its samples are decoded in the background the first time, while
+// the previous sound keeps playing.
 func (g *Game) setPreset(i int) {
+	n := len(synth.Presets)
+	i = ((i % n) + n) % n
 	g.preset = i
-	g.eng.SetPreset(i)
-	g.toast(synth.Presets[i].Name)
+	g.want.Store(int32(i))
+	if g.eng.Loaded(i) {
+		g.eng.SetPreset(i)
+		g.toast(synth.Presets[i].Name)
+		return
+	}
+	g.loading.Store(true)
+	go func() {
+		_, err := g.eng.Load(i)
+		if g.want.Load() != int32(i) {
+			return // the user picked something else meanwhile
+		}
+		if err != nil {
+			g.toast("Could not load " + synth.Presets[i].Name + ": " + err.Error())
+		} else {
+			g.eng.SetPreset(i)
+			g.toast(synth.Presets[i].Name)
+		}
+		g.loading.Store(false)
+	}()
 }
 
-func (g *Game) toast(s string) { g.flash, g.flashT = s, time.Now() }
+func (g *Game) firstOf(cat string) int {
+	for i, p := range synth.Presets {
+		if p.Category == cat {
+			return i
+		}
+	}
+	return 0
+}
+
+func (g *Game) toast(s string) {
+	g.flashMu.Lock()
+	g.flash, g.flashT = s, time.Now()
+	g.flashMu.Unlock()
+}
 
 func (g *Game) shiftOctave(d int) {
 	nb := g.base + 12*d
@@ -243,11 +288,20 @@ func (g *Game) shiftOctave(d int) {
 }
 
 func (g *Game) Update() error {
-	// Pianos.
+	// Sounds: F1-F4 jump to a category, Tab / PgUp / PgDn step through every preset.
 	for i, k := range []ebiten.Key{ebiten.KeyF1, ebiten.KeyF2, ebiten.KeyF3, ebiten.KeyF4} {
 		if inpututil.IsKeyJustPressed(k) {
-			g.setPreset(i)
+			g.setPreset(g.firstOf(categories[i]))
 		}
+	}
+	if pc := g.midiProgram.Swap(0); pc > 0 {
+		g.setPreset(int(pc-1) % len(synth.Presets))
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyPageDown) {
+		g.setPreset(g.preset + 1)
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyPageUp) {
+		g.setPreset(g.preset - 1)
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF5) {
 		g.cycleCurve()
@@ -257,13 +311,17 @@ func (g *Game) Update() error {
 		g.toast("Rescanned MIDI devices")
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyTab) {
-		g.setPreset((g.preset + 1) % len(synth.Presets))
+		if ebiten.IsKeyPressed(ebiten.KeyShift) {
+			g.setPreset(g.preset - 1)
+		} else {
+			g.setPreset(g.preset + 1)
+		}
 	}
 	// Octave / touch.
-	if inpututil.IsKeyJustPressed(ebiten.KeyArrowLeft) || inpututil.IsKeyJustPressed(ebiten.KeyPageDown) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyArrowLeft) {
 		g.shiftOctave(-1)
 	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) || inpututil.IsKeyJustPressed(ebiten.KeyPageUp) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) {
 		g.shiftOctave(1)
 	}
 	if k := inpututil.KeyPressDuration(ebiten.KeyArrowUp); k == 1 || (k > 90 && k%15 == 0) {
@@ -381,20 +439,20 @@ func (g *Game) updateMouse() {
 				return
 			}
 		}
-		if inRect(x, y, 24, 150, 34, 34) {
+		if inRect(x, y, 24, ctlY, 34, 34) {
 			g.shiftOctave(-1)
 		}
-		if inRect(x, y, 196, 150, 34, 34) {
+		if inRect(x, y, 196, ctlY, 34, 34) {
 			g.shiftOctave(1)
 		}
-		if inRect(x, y, 250, 150, 220, 34) {
+		if inRect(x, y, 250, ctlY, 220, 34) {
 			g.pedalLock = !g.pedalLock
 		}
-		if inRect(x, y, midiX+midiW-200, 150, 200, 34) {
+		if inRect(x, y, midiX+midiW-200, ctlY, 200, 34) {
 			g.cycleCurve()
 			return
 		}
-		if inRect(x, y, midiX, 150, midiW-200, 34) {
+		if inRect(x, y, midiX, ctlY, midiW-200, 34) {
 			g.midiIn.Rescan()
 			g.toast("Rescanned MIDI devices")
 			return
@@ -437,7 +495,30 @@ func inRect(x, y, rx, ry, rw, rh int) bool {
 	return x >= rx && x < rx+rw && y >= ry && y < ry+rh
 }
 
-func presetRect(i int) (int, int, int, int) { return 24 + i*200, 62, 188, 64 }
+// Preset grid: 6 columns x 4 rows on the left, controls on the right.
+const (
+	gridX, gridY = 24, 58
+	cellW, cellH = 146, 40
+	cellGap      = 6
+	gridCols     = 6
+	sideX        = 960
+	sideW        = screenW - 24 - sideX
+	ctlY         = 252
+)
+
+var categories = []string{"Grand", "Upright", "Character", "Keys"}
+
+var catColor = map[string]color.RGBA{
+	"Grand":     {0xe0, 0xa9, 0x58, 0xff},
+	"Upright":   {0x7f, 0xb8, 0xc9, 0xff},
+	"Character": {0xd8, 0x84, 0x9b, 0xff},
+	"Keys":      {0xa3, 0x95, 0xe0, 0xff},
+}
+
+func presetRect(i int) (int, int, int, int) {
+	c, r := i%gridCols, i/gridCols
+	return gridX + c*(cellW+cellGap), gridY + r*(cellH+cellGap), cellW, cellH
+}
 
 func (g *Game) drawText(dst *ebiten.Image, s string, face text.Face, x, y float64, clr color.Color, align text.Align) {
 	op := &text.DrawOptions{}
@@ -455,25 +536,27 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(colBG)
 	g.drawText(screen, "PIANO PLAYER", g.faceTitle, 24, 14, colText, text.AlignStart)
 
-	// Piano buttons.
+	// Sound presets.
 	for i, p := range synth.Presets {
 		x, y, w, h := presetRect(i)
+		sel := i == g.preset
 		c := colPanel
-		if i == g.preset {
+		if sel {
 			c = colPanelHi
 		}
-		vector.DrawFilledRect(screen, float32(x), float32(y), float32(w), float32(h), c, false)
-		if i == g.preset {
-			rect(screen, float32(x), float32(y+h-4), float32(w), 4, colAccent)
-		}
+		rect(screen, float32(x), float32(y), float32(w), float32(h), c)
+		cc := catColor[p.Category]
+		rect(screen, float32(x), float32(y), 4, float32(h), cc)
 		tc := colDim
-		if i == g.preset {
+		if sel {
 			tc = colText
+			rect(screen, float32(x), float32(y+h-3), float32(w), 3, cc)
 		}
-		g.drawText(screen, p.Name, g.faceBold, float64(x+14), float64(y+12), tc, text.AlignStart)
-		g.drawText(screen, fmt.Sprintf("F%d", i+1), g.faceSmall, float64(x+w-14), float64(y+14), colDim, text.AlignEnd)
-		desc := []string{"Big, warm, long sustain", "Woody, intimate, punchy", "Pop / rock, cuts through", "Honky-tonk, saloon tuning"}[i]
-		g.drawText(screen, desc, g.face, float64(x+14), float64(y+36), colDim, text.AlignStart)
+		g.drawText(screen, p.Name, g.faceBtn, float64(x+12), float64(y+6), tc, text.AlignStart)
+		g.drawText(screen, strings.ToUpper(p.Category), g.faceTiny, float64(x+12), float64(y+24), cc, text.AlignStart)
+		if sel && g.loading.Load() {
+			g.drawText(screen, "loading…", g.faceTiny, float64(x+w-8), float64(y+24), colText, text.AlignEnd)
+		}
 	}
 
 	// Sliders.
@@ -485,36 +568,41 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		rect(screen, s.x, s.y+25, s.w*t, 4, colAccent)
 		vector.DrawFilledCircle(screen, s.x+s.w*t, s.y+27, 8, colText, true)
 	}
-	// Output meter.
-	mx, my := float32(870), float32(112)
+	// Output meter + what's playing.
+	mx, my := float32(sideX), float32(198)
 	g.drawText(screen, "LEVEL", g.faceSmall, float64(mx), float64(my), colDim, text.AlignStart)
-	rect(screen, mx+50, my+3, 456, 8, colPanel)
+	rect(screen, mx+50, my+3, sideW-50, 8, colPanel)
 	lv := float32(math.Min(1, g.meter/0.85))
 	mc := colAccent2
-	if g.meter > 0.7 {
+	if g.meter > 0.75 {
 		mc = colAccent
 	}
-	rect(screen, mx+50, my+3, 456*lv, 8, mc)
+	rect(screen, mx+50, my+3, (sideW-50)*lv, 8, mc)
+	cur := synth.Presets[g.preset]
+	g.drawText(screen, cur.Name+": "+cur.Desc, g.face, float64(mx), float64(my+18), colDim, text.AlignStart)
 
 	// Octave + pedal.
-	g.button(screen, 24, 150, 34, 34, "◄", false)
-	rect(screen, 62, 150, 130, 34, colPanel)
-	g.drawText(screen, "Z = "+noteName(g.base), g.faceBold, 127, 158, colText, text.AlignCenter)
-	g.button(screen, 196, 150, 34, 34, "►", false)
+	g.button(screen, 24, ctlY, 34, 34, "◄", false)
+	rect(screen, 62, ctlY, 130, 34, colPanel)
+	g.drawText(screen, "Z = "+noteName(g.base), g.faceBold, 127, ctlY+8, colText, text.AlignCenter)
+	g.button(screen, 196, ctlY, 34, 34, "►", false)
 	pedalTxt := "SUSTAIN  (hold Space)"
 	if g.pedalLock {
 		pedalTxt = "SUSTAIN LATCHED (Enter)"
 	}
-	g.button(screen, 250, 150, 220, 34, pedalTxt, g.pedal)
-	g.drawText(screen, fmt.Sprintf("%d voices", g.eng.ActiveVoices()), g.face, 490, 158, colDim, text.AlignStart)
-	if g.flash != "" && time.Since(g.flashT) < 1500*time.Millisecond {
-		g.drawText(screen, g.flash, g.faceBold, screenW-24, 22, colAccent, text.AlignEnd)
+	g.button(screen, 250, ctlY, 220, 34, pedalTxt, g.pedal)
+	g.drawText(screen, fmt.Sprintf("%d voices", g.eng.ActiveVoices()), g.face, 490, ctlY+8, colDim, text.AlignStart)
+	g.flashMu.Lock()
+	fl, ft := g.flash, g.flashT
+	g.flashMu.Unlock()
+	if fl != "" && time.Since(ft) < 1800*time.Millisecond {
+		g.drawText(screen, fl, g.faceBold, screenW-24, 22, colAccent, text.AlignEnd)
 	}
 	g.drawMIDI(screen)
 
 	g.drawKeyboard(screen)
 
-	help := "Lower row Z–/ and upper row Q–] play  ·  ← → octave  ·  ↑ ↓ touch  ·  Shift accent, Ctrl soft  ·  Space sustain  ·  F1–F4 piano  ·  F5 MIDI velocity  ·  Esc all notes off"
+	help := "Lower row Z–/ and upper row Q–] play  ·  ← → octave  ·  ↑ ↓ touch  ·  Shift accent, Ctrl soft  ·  Space sustain  ·  Tab / PgUp PgDn sound  ·  F1–F4 category  ·  F5 MIDI velocity  ·  Esc all notes off"
 	g.drawText(screen, help, g.face, screenW/2, float64(kbY+whiteH+30), colDim, text.AlignCenter)
 }
 
@@ -524,8 +612,8 @@ const (
 )
 
 func (g *Game) drawMIDI(screen *ebiten.Image) {
-	rect(screen, midiX, 150, midiW, 34, colPanel)
-	g.drawText(screen, "MIDI", g.faceSmall, midiX+12, 161, colDim, text.AlignStart)
+	rect(screen, midiX, ctlY, midiW, 34, colPanel)
+	g.drawText(screen, "MIDI", g.faceSmall, midiX+12, ctlY+11, colDim, text.AlignStart)
 	open, busy := g.midiIn.Devices()
 	dot := color.Color(colPanelHi)
 	if len(open) > 0 {
@@ -534,7 +622,7 @@ func (g *Game) drawMIDI(screen *ebiten.Image) {
 			dot = color.RGBA{0x8c, 0xf0, 0x9a, 0xff}
 		}
 	}
-	vector.DrawFilledCircle(screen, midiX+58, 167, 6, dot, true)
+	vector.DrawFilledCircle(screen, midiX+58, ctlY+17, 6, dot, true)
 	msg, mc := "No MIDI keyboard found. Plug one in any time (F6 / click to rescan)", color.Color(colDim)
 	if len(open) > 0 {
 		msg, mc = strings.Join(open, " + "), colText
@@ -548,12 +636,12 @@ func (g *Game) drawMIDI(screen *ebiten.Image) {
 	if r := []rune(msg); len(r) > 58 {
 		msg = string(r[:57]) + "…"
 	}
-	g.drawText(screen, msg, g.face, midiX+74, 158, mc, text.AlignStart)
+	g.drawText(screen, msg, g.face, midiX+74, ctlY+8, mc, text.AlignStart)
 	extra := ""
 	if g.midi.soft.Load() {
 		extra = "SOFT  "
 	}
-	g.drawText(screen, extra+"Velocity: "+velCurves[g.midi.curve.Load()].name+" (F5)", g.faceSmall, midiX+midiW-12, 161, colAccent2, text.AlignEnd)
+	g.drawText(screen, extra+"Velocity: "+velCurves[g.midi.curve.Load()].name+" (F5)", g.faceSmall, midiX+midiW-12, ctlY+11, colAccent2, text.AlignEnd)
 }
 
 func (g *Game) button(dst *ebiten.Image, x, y, w, h float32, label string, on bool) {

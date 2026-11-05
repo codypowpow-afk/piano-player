@@ -1,0 +1,115 @@
+{
+ "name": "Glockenspiel (VCSL)",
+ "channels": 1,
+ "layers": 3,
+ "zones": [
+  {
+   "file": "m079_l0.ogg",
+   "root": 79,
+   "layer": 0,
+   "frames": 192000
+  },
+  {
+   "file": "m084_l0.ogg",
+   "root": 84,
+   "layer": 0,
+   "frames": 192000
+  },
+  {
+   "file": "m091_l0.ogg",
+   "root": 91,
+   "layer": 0,
+   "frames": 192000
+  },
+  {
+   "file": "m096_l0.ogg",
+   "root": 96,
+   "layer": 0,
+   "frames": 192000
+  },
+  {
+   "file": "m103_l0.ogg",
+   "root": 103,
+   "layer": 0,
+   "frames": 159432
+  },
+  {
+   "file": "m108_l0.ogg",
+   "root": 108,
+   "layer": 0,
+   "frames": 192000
+  },
+  {
+   "file": "m079_l1.ogg",
+   "root": 79,
+   "layer": 1,
+   "frames": 192000
+  },
+  {
+   "file": "m084_l1.ogg",
+   "root": 84,
+   "layer": 1,
+   "frames": 192000
+  },
+  {
+   "file": "m091_l1.ogg",
+   "root": 91,
+   "layer": 1,
+   "frames": 192000
+  },
+  {
+   "file": "m096_l1.ogg",
+   "root": 96,
+   "layer": 1,
+   "frames": 192000
+  },
+  {
+   "file": "m103_l1.ogg",
+   "root": 103,
+   "layer": 1,
+   "frames": 185295
+  },
+  {
+   "file": "m108_l1.ogg",
+   "root": 108,
+   "layer": 1,
+   "frames": 89131
+  },
+  {
+   "file": "m079_l2.ogg",
+   "root": 79,
+   "layer": 2,
+   "frames": 192000
+  },
+  {
+   "file": "m084_l2.ogg",
+   "root": 84,
+   "layer": 2,
+   "frames": 192000
+  },
+  {
+   "file": "m091_l2.ogg",
+   "root": 91,
+   "layer": 2,
+   "frames": 192000
+  },
+  {
+   "file": "m096_l2.ogg",
+   "root": 96,
+   "layer": 2,
+   "frames": 192000
+  },
+  {
+   "file": "m104_l2.ogg",
+   "root": 104,
+   "layer": 2,
+   "frames": 192000
+  },
+  {
+   "file": "m108_l2.ogg",
+   "root": 108,
+   "layer": 2,
+   "frames": 126439
+  }
+ ]
+}

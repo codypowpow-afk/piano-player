@@ -1,0 +1,139 @@
+{
+ "name": "Vibraphone (VCSL)",
+ "channels": 1,
+ "layers": 2,
+ "zones": [
+  {
+   "file": "m053_l0.ogg",
+   "root": 53,
+   "layer": 0,
+   "frames": 252756
+  },
+  {
+   "file": "m057_l0.ogg",
+   "root": 57,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m060_l0.ogg",
+   "root": 60,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m064_l0.ogg",
+   "root": 64,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m067_l0.ogg",
+   "root": 67,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m071_l0.ogg",
+   "root": 71,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m074_l0.ogg",
+   "root": 74,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m077_l0.ogg",
+   "root": 77,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m081_l0.ogg",
+   "root": 81,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m084_l0.ogg",
+   "root": 84,
+   "layer": 0,
+   "frames": 169759
+  },
+  {
+   "file": "m088_l0.ogg",
+   "root": 88,
+   "layer": 0,
+   "frames": 262238
+  },
+  {
+   "file": "m053_l1.ogg",
+   "root": 53,
+   "layer": 1,
+   "frames": 111603
+  },
+  {
+   "file": "m057_l1.ogg",
+   "root": 57,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m060_l1.ogg",
+   "root": 60,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m064_l1.ogg",
+   "root": 64,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m067_l1.ogg",
+   "root": 67,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m071_l1.ogg",
+   "root": 71,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m074_l1.ogg",
+   "root": 74,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m077_l1.ogg",
+   "root": 77,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m081_l1.ogg",
+   "root": 81,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m084_l1.ogg",
+   "root": 84,
+   "layer": 1,
+   "frames": 222380
+  },
+  {
+   "file": "m088_l1.ogg",
+   "root": 88,
+   "layer": 1,
+   "frames": 270804
+  }
+ ]
+}

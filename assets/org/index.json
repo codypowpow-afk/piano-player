@@ -1,0 +1,175 @@
+{
+ "name": "Pipe Organ (VCSL)",
+ "channels": 1,
+ "layers": 1,
+ "zones": [
+  {
+   "file": "m036_l0.ogg",
+   "root": 36,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m039_l0.ogg",
+   "root": 39,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m042_l0.ogg",
+   "root": 42,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m045_l0.ogg",
+   "root": 45,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m048_l0.ogg",
+   "root": 48,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m051_l0.ogg",
+   "root": 51,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m054_l0.ogg",
+   "root": 54,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m057_l0.ogg",
+   "root": 57,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m060_l0.ogg",
+   "root": 60,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m063_l0.ogg",
+   "root": 63,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m066_l0.ogg",
+   "root": 66,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m069_l0.ogg",
+   "root": 69,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m072_l0.ogg",
+   "root": 72,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m075_l0.ogg",
+   "root": 75,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m078_l0.ogg",
+   "root": 78,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m081_l0.ogg",
+   "root": 81,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m084_l0.ogg",
+   "root": 84,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m087_l0.ogg",
+   "root": 87,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m090_l0.ogg",
+   "root": 90,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m093_l0.ogg",
+   "root": 93,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  },
+  {
+   "file": "m096_l0.ogg",
+   "root": 96,
+   "layer": 0,
+   "frames": 353280,
+   "loopStart": 115200,
+   "loopEnd": 353280
+  }
+ ]
+}

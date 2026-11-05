@@ -1,0 +1,511 @@
+{
+ "name": "Steinway B Grand (VCSL)",
+ "channels": 2,
+ "layers": 2,
+ "zones": [
+  {
+   "file": "m022_l0.ogg",
+   "root": 22,
+   "layer": 0,
+   "frames": 666720
+  },
+  {
+   "file": "m024_l0.ogg",
+   "root": 24,
+   "layer": 0,
+   "frames": 656160
+  },
+  {
+   "file": "m026_l0.ogg",
+   "root": 26,
+   "layer": 0,
+   "frames": 645600
+  },
+  {
+   "file": "m028_l0.ogg",
+   "root": 28,
+   "layer": 0,
+   "frames": 635040
+  },
+  {
+   "file": "m030_l0.ogg",
+   "root": 30,
+   "layer": 0,
+   "frames": 624480
+  },
+  {
+   "file": "m032_l0.ogg",
+   "root": 32,
+   "layer": 0,
+   "frames": 613920
+  },
+  {
+   "file": "m034_l0.ogg",
+   "root": 34,
+   "layer": 0,
+   "frames": 603360
+  },
+  {
+   "file": "m036_l0.ogg",
+   "root": 36,
+   "layer": 0,
+   "frames": 592800
+  },
+  {
+   "file": "m038_l0.ogg",
+   "root": 38,
+   "layer": 0,
+   "frames": 582240
+  },
+  {
+   "file": "m040_l0.ogg",
+   "root": 40,
+   "layer": 0,
+   "frames": 571680
+  },
+  {
+   "file": "m042_l0.ogg",
+   "root": 42,
+   "layer": 0,
+   "frames": 561120
+  },
+  {
+   "file": "m044_l0.ogg",
+   "root": 44,
+   "layer": 0,
+   "frames": 550560
+  },
+  {
+   "file": "m046_l0.ogg",
+   "root": 46,
+   "layer": 0,
+   "frames": 540000
+  },
+  {
+   "file": "m048_l0.ogg",
+   "root": 48,
+   "layer": 0,
+   "frames": 529440
+  },
+  {
+   "file": "m050_l0.ogg",
+   "root": 50,
+   "layer": 0,
+   "frames": 518880
+  },
+  {
+   "file": "m052_l0.ogg",
+   "root": 52,
+   "layer": 0,
+   "frames": 508320
+  },
+  {
+   "file": "m054_l0.ogg",
+   "root": 54,
+   "layer": 0,
+   "frames": 497760
+  },
+  {
+   "file": "m056_l0.ogg",
+   "root": 56,
+   "layer": 0,
+   "frames": 487200
+  },
+  {
+   "file": "m058_l0.ogg",
+   "root": 58,
+   "layer": 0,
+   "frames": 476640
+  },
+  {
+   "file": "m060_l0.ogg",
+   "root": 60,
+   "layer": 0,
+   "frames": 408470
+  },
+  {
+   "file": "m062_l0.ogg",
+   "root": 62,
+   "layer": 0,
+   "frames": 455520
+  },
+  {
+   "file": "m064_l0.ogg",
+   "root": 64,
+   "layer": 0,
+   "frames": 444960
+  },
+  {
+   "file": "m066_l0.ogg",
+   "root": 66,
+   "layer": 0,
+   "frames": 434400
+  },
+  {
+   "file": "m068_l0.ogg",
+   "root": 68,
+   "layer": 0,
+   "frames": 423840
+  },
+  {
+   "file": "m070_l0.ogg",
+   "root": 70,
+   "layer": 0,
+   "frames": 413280
+  },
+  {
+   "file": "m072_l0.ogg",
+   "root": 72,
+   "layer": 0,
+   "frames": 402720
+  },
+  {
+   "file": "m074_l0.ogg",
+   "root": 74,
+   "layer": 0,
+   "frames": 392160
+  },
+  {
+   "file": "m076_l0.ogg",
+   "root": 76,
+   "layer": 0,
+   "frames": 381600
+  },
+  {
+   "file": "m078_l0.ogg",
+   "root": 78,
+   "layer": 0,
+   "frames": 371040
+  },
+  {
+   "file": "m080_l0.ogg",
+   "root": 80,
+   "layer": 0,
+   "frames": 360480
+  },
+  {
+   "file": "m082_l0.ogg",
+   "root": 82,
+   "layer": 0,
+   "frames": 349920
+  },
+  {
+   "file": "m084_l0.ogg",
+   "root": 84,
+   "layer": 0,
+   "frames": 339360
+  },
+  {
+   "file": "m086_l0.ogg",
+   "root": 86,
+   "layer": 0,
+   "frames": 328800
+  },
+  {
+   "file": "m088_l0.ogg",
+   "root": 88,
+   "layer": 0,
+   "frames": 309245
+  },
+  {
+   "file": "m090_l0.ogg",
+   "root": 90,
+   "layer": 0,
+   "frames": 219047
+  },
+  {
+   "file": "m092_l0.ogg",
+   "root": 92,
+   "layer": 0,
+   "frames": 183524
+  },
+  {
+   "file": "m094_l0.ogg",
+   "root": 94,
+   "layer": 0,
+   "frames": 126539
+  },
+  {
+   "file": "m096_l0.ogg",
+   "root": 96,
+   "layer": 0,
+   "frames": 172227
+  },
+  {
+   "file": "m098_l0.ogg",
+   "root": 98,
+   "layer": 0,
+   "frames": 79078
+  },
+  {
+   "file": "m100_l0.ogg",
+   "root": 100,
+   "layer": 0,
+   "frames": 135494
+  },
+  {
+   "file": "m102_l0.ogg",
+   "root": 102,
+   "layer": 0,
+   "frames": 92430
+  },
+  {
+   "file": "m104_l0.ogg",
+   "root": 104,
+   "layer": 0,
+   "frames": 70836
+  },
+  {
+   "file": "m022_l1.ogg",
+   "root": 22,
+   "layer": 1,
+   "frames": 666720
+  },
+  {
+   "file": "m024_l1.ogg",
+   "root": 24,
+   "layer": 1,
+   "frames": 656160
+  },
+  {
+   "file": "m026_l1.ogg",
+   "root": 26,
+   "layer": 1,
+   "frames": 645600
+  },
+  {
+   "file": "m028_l1.ogg",
+   "root": 28,
+   "layer": 1,
+   "frames": 635040
+  },
+  {
+   "file": "m030_l1.ogg",
+   "root": 30,
+   "layer": 1,
+   "frames": 624480
+  },
+  {
+   "file": "m032_l1.ogg",
+   "root": 32,
+   "layer": 1,
+   "frames": 613920
+  },
+  {
+   "file": "m034_l1.ogg",
+   "root": 34,
+   "layer": 1,
+   "frames": 603360
+  },
+  {
+   "file": "m036_l1.ogg",
+   "root": 36,
+   "layer": 1,
+   "frames": 592800
+  },
+  {
+   "file": "m038_l1.ogg",
+   "root": 38,
+   "layer": 1,
+   "frames": 582240
+  },
+  {
+   "file": "m040_l1.ogg",
+   "root": 40,
+   "layer": 1,
+   "frames": 571680
+  },
+  {
+   "file": "m042_l1.ogg",
+   "root": 42,
+   "layer": 1,
+   "frames": 561120
+  },
+  {
+   "file": "m044_l1.ogg",
+   "root": 44,
+   "layer": 1,
+   "frames": 550560
+  },
+  {
+   "file": "m046_l1.ogg",
+   "root": 46,
+   "layer": 1,
+   "frames": 540000
+  },
+  {
+   "file": "m048_l1.ogg",
+   "root": 48,
+   "layer": 1,
+   "frames": 529440
+  },
+  {
+   "file": "m050_l1.ogg",
+   "root": 50,
+   "layer": 1,
+   "frames": 518880
+  },
+  {
+   "file": "m052_l1.ogg",
+   "root": 52,
+   "layer": 1,
+   "frames": 508320
+  },
+  {
+   "file": "m054_l1.ogg",
+   "root": 54,
+   "layer": 1,
+   "frames": 497760
+  },
+  {
+   "file": "m056_l1.ogg",
+   "root": 56,
+   "layer": 1,
+   "frames": 487200
+  },
+  {
+   "file": "m058_l1.ogg",
+   "root": 58,
+   "layer": 1,
+   "frames": 476640
+  },
+  {
+   "file": "m060_l1.ogg",
+   "root": 60,
+   "layer": 1,
+   "frames": 466080
+  },
+  {
+   "file": "m062_l1.ogg",
+   "root": 62,
+   "layer": 1,
+   "frames": 455520
+  },
+  {
+   "file": "m064_l1.ogg",
+   "root": 64,
+   "layer": 1,
+   "frames": 444960
+  },
+  {
+   "file": "m066_l1.ogg",
+   "root": 66,
+   "layer": 1,
+   "frames": 434400
+  },
+  {
+   "file": "m068_l1.ogg",
+   "root": 68,
+   "layer": 1,
+   "frames": 423840
+  },
+  {
+   "file": "m070_l1.ogg",
+   "root": 70,
+   "layer": 1,
+   "frames": 413280
+  },
+  {
+   "file": "m072_l1.ogg",
+   "root": 72,
+   "layer": 1,
+   "frames": 402720
+  },
+  {
+   "file": "m074_l1.ogg",
+   "root": 74,
+   "layer": 1,
+   "frames": 392160
+  },
+  {
+   "file": "m076_l1.ogg",
+   "root": 76,
+   "layer": 1,
+   "frames": 381600
+  },
+  {
+   "file": "m078_l1.ogg",
+   "root": 78,
+   "layer": 1,
+   "frames": 371040
+  },
+  {
+   "file": "m080_l1.ogg",
+   "root": 80,
+   "layer": 1,
+   "frames": 360480
+  },
+  {
+   "file": "m082_l1.ogg",
+   "root": 82,
+   "layer": 1,
+   "frames": 349920
+  },
+  {
+   "file": "m084_l1.ogg",
+   "root": 84,
+   "layer": 1,
+   "frames": 339360
+  },
+  {
+   "file": "m086_l1.ogg",
+   "root": 86,
+   "layer": 1,
+   "frames": 328800
+  },
+  {
+   "file": "m088_l1.ogg",
+   "root": 88,
+   "layer": 1,
+   "frames": 318240
+  },
+  {
+   "file": "m090_l1.ogg",
+   "root": 90,
+   "layer": 1,
+   "frames": 307680
+  },
+  {
+   "file": "m092_l1.ogg",
+   "root": 92,
+   "layer": 1,
+   "frames": 248823
+  },
+  {
+   "file": "m094_l1.ogg",
+   "root": 94,
+   "layer": 1,
+   "frames": 177462
+  },
+  {
+   "file": "m096_l1.ogg",
+   "root": 96,
+   "layer": 1,
+   "frames": 151746
+  },
+  {
+   "file": "m098_l1.ogg",
+   "root": 98,
+   "layer": 1,
+   "frames": 129603
+  },
+  {
+   "file": "m100_l1.ogg",
+   "root": 100,
+   "layer": 1,
+   "frames": 167940
+  },
+  {
+   "file": "m102_l1.ogg",
+   "root": 102,
+   "layer": 1,
+   "frames": 96306
+  },
+  {
+   "file": "m104_l1.ogg",
+   "root": 104,
+   "layer": 1,
+   "frames": 117942
+  }
+ ]
+}

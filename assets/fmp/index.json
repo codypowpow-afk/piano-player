@@ -1,0 +1,271 @@
+{
+ "name": "FM Electric Piano (VCSL TX81Z)",
+ "channels": 1,
+ "layers": 2,
+ "zones": [
+  {
+   "file": "m012_l0.ogg",
+   "root": 12,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m016_l0.ogg",
+   "root": 16,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m020_l0.ogg",
+   "root": 20,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m024_l0.ogg",
+   "root": 24,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m028_l0.ogg",
+   "root": 28,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m032_l0.ogg",
+   "root": 32,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m036_l0.ogg",
+   "root": 36,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m040_l0.ogg",
+   "root": 40,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m044_l0.ogg",
+   "root": 44,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m048_l0.ogg",
+   "root": 48,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m052_l0.ogg",
+   "root": 52,
+   "layer": 0,
+   "frames": 336000
+  },
+  {
+   "file": "m056_l0.ogg",
+   "root": 56,
+   "layer": 0,
+   "frames": 298265
+  },
+  {
+   "file": "m060_l0.ogg",
+   "root": 60,
+   "layer": 0,
+   "frames": 313564
+  },
+  {
+   "file": "m064_l0.ogg",
+   "root": 64,
+   "layer": 0,
+   "frames": 276306
+  },
+  {
+   "file": "m068_l0.ogg",
+   "root": 68,
+   "layer": 0,
+   "frames": 219154
+  },
+  {
+   "file": "m072_l0.ogg",
+   "root": 72,
+   "layer": 0,
+   "frames": 220314
+  },
+  {
+   "file": "m076_l0.ogg",
+   "root": 76,
+   "layer": 0,
+   "frames": 188140
+  },
+  {
+   "file": "m080_l0.ogg",
+   "root": 80,
+   "layer": 0,
+   "frames": 157275
+  },
+  {
+   "file": "m084_l0.ogg",
+   "root": 84,
+   "layer": 0,
+   "frames": 156277
+  },
+  {
+   "file": "m088_l0.ogg",
+   "root": 88,
+   "layer": 0,
+   "frames": 137885
+  },
+  {
+   "file": "m092_l0.ogg",
+   "root": 92,
+   "layer": 0,
+   "frames": 111452
+  },
+  {
+   "file": "m096_l0.ogg",
+   "root": 96,
+   "layer": 0,
+   "frames": 112180
+  },
+  {
+   "file": "m012_l1.ogg",
+   "root": 12,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m016_l1.ogg",
+   "root": 16,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m020_l1.ogg",
+   "root": 20,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m024_l1.ogg",
+   "root": 24,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m028_l1.ogg",
+   "root": 28,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m032_l1.ogg",
+   "root": 32,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m036_l1.ogg",
+   "root": 36,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m040_l1.ogg",
+   "root": 40,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m044_l1.ogg",
+   "root": 44,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m048_l1.ogg",
+   "root": 48,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m052_l1.ogg",
+   "root": 52,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m056_l1.ogg",
+   "root": 56,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m060_l1.ogg",
+   "root": 60,
+   "layer": 1,
+   "frames": 336000
+  },
+  {
+   "file": "m064_l1.ogg",
+   "root": 64,
+   "layer": 1,
+   "frames": 312192
+  },
+  {
+   "file": "m068_l1.ogg",
+   "root": 68,
+   "layer": 1,
+   "frames": 247942
+  },
+  {
+   "file": "m072_l1.ogg",
+   "root": 72,
+   "layer": 1,
+   "frames": 254471
+  },
+  {
+   "file": "m076_l1.ogg",
+   "root": 76,
+   "layer": 1,
+   "frames": 209714
+  },
+  {
+   "file": "m080_l1.ogg",
+   "root": 80,
+   "layer": 1,
+   "frames": 180746
+  },
+  {
+   "file": "m084_l1.ogg",
+   "root": 84,
+   "layer": 1,
+   "frames": 181004
+  },
+  {
+   "file": "m088_l1.ogg",
+   "root": 88,
+   "layer": 1,
+   "frames": 161854
+  },
+  {
+   "file": "m092_l1.ogg",
+   "root": 92,
+   "layer": 1,
+   "frames": 126296
+  },
+  {
+   "file": "m096_l1.ogg",
+   "root": 96,
+   "layer": 1,
+   "frames": 128752
+  }
+ ]
+}

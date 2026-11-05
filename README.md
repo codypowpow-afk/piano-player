@@ -1,21 +1,26 @@
 # Piano Player
 
 A standalone acoustic piano for Windows that you play with a USB MIDI keyboard, your computer keyboard, or the mouse.
-One small `.exe`, no installer, no sample files, works offline.
+One `.exe` with the instrument recordings built in, no installer, works offline.
 
 **Download:** [`download/PianoPlayer.exe`](../../raw/main/download/PianoPlayer.exe), then double-click it.
 (Windows SmartScreen may warn because the exe isn't code-signed: click **More info → Run anyway**.)
 
-## Pianos
+## Sounds (24 presets)
 
-| Key | Piano | Character |
-|-----|-------|-----------|
-| F1 | **Concert Grand** | Big, warm, long sustain, wide stereo, concert-hall room |
-| F2 | **Upright** | Woody and intimate, punchier attack, shorter sustain, small room |
-| F3 | **Bright Grand** | Pop/rock grand that cuts through a mix |
-| F4 | **Old Upright** | Honky-tonk: detuned unison strings, boxy body, lots of action knock |
+Real recorded instruments, sampled at several velocity layers so soft playing sounds soft
+and dark, and hard playing sounds bright, like the real thing.
 
-`Tab` cycles through them, or click the buttons.
+| Category | Presets |
+|----------|---------|
+| **Grand** | Concert Grand · Studio Grand · Bright Pop Grand · Warm Jazz Grand · Concert Hall · Cathedral Grand · Ballad Grand · Steinway B · Steinway Intimate |
+| **Upright** | Yamaha Upright · Knight Upright · Honky-Tonk · Felt Upright |
+| **Character** | Felt Piano · Dream Piano · Muted Piano · Lo-Fi Piano · Old Record |
+| **Keys** | Harpsichord · FM Electric Piano · Vibraphone · Marimba · Pipe Organ · Glockenspiel |
+
+Click a sound, or use `Tab` / `Shift+Tab` (or `PgDn` / `PgUp`) to step through them, `F1`–`F4`
+to jump to a category, or send a **Program Change** from your MIDI keyboard (program 1 = Concert
+Grand, 2 = Studio Grand, …). Each instrument loads in a second or two the first time you pick it.
 
 ## Playing
 
@@ -36,6 +41,7 @@ on-screen keyboard, and the gold bar above it shows which part of the 88 keys yo
 | hold `Shift` / `Ctrl` | Accent (harder) / soft for the notes you press |
 | hold `Space` | Sustain pedal |
 | `Enter` or `Caps Lock` | Latch the sustain pedal on/off |
+| `Tab` / `PgUp` `PgDn` / `F1`–`F4` | Next / previous sound, jump to category |
 | `F5` / `F6` | MIDI velocity curve / rescan MIDI devices |
 | `Esc` | All notes off |
 | Mouse | Click keys to play (lower on the key = louder), drag for glissando |
@@ -56,25 +62,32 @@ the MIDI bar, with a light that flashes as you play. Several keyboards can be co
 - If the bar says a keyboard is *in use by another program*, close your DAW or other MIDI app:
   Windows only lets one program use a MIDI device at a time.
 
-## How the sound is made
+## How the sound works
 
-There are no recordings inside. Every note is synthesized in real time from a physical model of
-a piano string:
-
-- **Inharmonic overtones**: stiff steel strings make the upper partials go progressively sharp
-  (`fₙ = n·f₀·√(1+B·n²)`). Uprights have shorter, stiffer strings, so they get more of it,
-  especially in the bass.
-- **Two or three unison strings per note**, slightly detuned, for the natural beating and
-  shimmer (exaggerated on the Old Upright for that honky-tonk sound).
-- **Two-stage decay**: a quick "prompt" sound followed by the long "aftersound", with higher
-  partials dying faster.
-- **Hammer model**: strike-position comb filtering, felt brightness that opens up the harder you
-  play, plus felt noise and action knock.
-- **Soundboard and body**: radiation roll-off in the bass, body resonance (boxier on uprights),
-  slight stretch tuning.
-- **Dampers** that stop notes when you lift the key (no dampers on the top keys, as on a real
-  piano), the **sustain pedal**, and a stereo **room reverb**.
+- **Grand pianos**: a Yamaha C5 concert grand (Salamander Grand Piano, 4 velocity layers,
+  sampled every minor third) and a Steinway Model B (2 layers).
+- **Uprights**: a Yamaha upright (3 layers) and a vintage Knight upright (2 layers).
+- Velocity **crossfades smoothly** between the recorded layers, and notes between sampled keys
+  are pitch-shifted from the nearest recording with high-quality interpolation.
+- **Dampers** stop notes when you lift the key (the top octave has no dampers, as on a real
+  piano), and the **sustain pedal** lets everything ring. Re-striking a key replaces the old note
+  smoothly.
+- Each preset has its own tone and **room**: EQ, felt filter, compression, tape wobble, vinyl
+  crackle, tremolo, stereo width and reverb.
 - A peak limiter keeps big pedalled chords clean.
+
+## Credits
+
+The instrument recordings are by other people, used under their free licenses:
+
+- **Salamander Grand Piano V3** by Alexander Holm, licensed
+  [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)
+  ([sfzinstruments/SalamanderGrandPiano](https://github.com/sfzinstruments/SalamanderGrandPiano)).
+  Changes: 4 of the 16 velocity layers, trimmed, level-matched and re-encoded as Ogg Vorbis.
+- **Versilian Community Sample Library (VCSL)** by Versilian Studios and contributors,
+  [CC0](https://creativecommons.org/publicdomain/zero/1.0/)
+  ([sgossner/VCSL](https://github.com/sgossner/VCSL)): Steinway B, Yamaha and Knight uprights,
+  Flemish harpsichord, TX81Z FM piano, vibraphone, marimba, pipe organ, glockenspiel.
 
 ## Build it yourself
 
@@ -84,7 +97,12 @@ Needs Go 1.22+. The exe is cross-compiled; no Windows machine needed.
 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -H=windowsgui" -o dist/PianoPlayer.exe .
 ```
 
+The samples in `assets/` are built from the original libraries by
+`python3 tools/samples/build.py --salamander <SalamanderGrandPiano>/Samples --vcsl <VCSL>`
+(needs numpy and ffmpeg). It checks each sample's pitch, trims it, matches levels, makes the
+organ loops and encodes Ogg Vorbis.
+
 `rsrc_windows_amd64.syso` (icon + version info) is generated by `go run ./tools/winres`.
-`go run ./tools/demo out/` renders a demo passage on every piano to WAV and prints CPU use.
+`go run ./tools/demo out/` renders a demo passage on every preset to WAV and prints CPU use.
 
 Built with [Ebitengine](https://ebitengine.org/).

@@ -55,6 +55,8 @@ func (g *Game) handleMIDI(status, d1, d2 byte) {
 			ms.down[d1].Store(0)
 			g.eng.NoteOff(int(d1))
 		}
+	case 0xC0: // program change picks a sound preset
+		g.midiProgram.Store(int32(d1) + 1)
 	case 0xB0:
 		switch d1 {
 		case 64: // sustain (damper) pedal

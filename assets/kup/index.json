@@ -1,0 +1,547 @@
+{
+ "name": "Knight Upright (VCSL)",
+ "channels": 2,
+ "layers": 2,
+ "zones": [
+  {
+   "file": "m021_l0.ogg",
+   "root": 21,
+   "layer": 0,
+   "frames": 537600
+  },
+  {
+   "file": "m023_l0.ogg",
+   "root": 23,
+   "layer": 0,
+   "frames": 529152
+  },
+  {
+   "file": "m025_l0.ogg",
+   "root": 25,
+   "layer": 0,
+   "frames": 520704
+  },
+  {
+   "file": "m027_l0.ogg",
+   "root": 27,
+   "layer": 0,
+   "frames": 512256
+  },
+  {
+   "file": "m029_l0.ogg",
+   "root": 29,
+   "layer": 0,
+   "frames": 503808
+  },
+  {
+   "file": "m031_l0.ogg",
+   "root": 31,
+   "layer": 0,
+   "frames": 495360
+  },
+  {
+   "file": "m033_l0.ogg",
+   "root": 33,
+   "layer": 0,
+   "frames": 486912
+  },
+  {
+   "file": "m035_l0.ogg",
+   "root": 35,
+   "layer": 0,
+   "frames": 478464
+  },
+  {
+   "file": "m037_l0.ogg",
+   "root": 37,
+   "layer": 0,
+   "frames": 470016
+  },
+  {
+   "file": "m039_l0.ogg",
+   "root": 39,
+   "layer": 0,
+   "frames": 461568
+  },
+  {
+   "file": "m041_l0.ogg",
+   "root": 41,
+   "layer": 0,
+   "frames": 453120
+  },
+  {
+   "file": "m043_l0.ogg",
+   "root": 43,
+   "layer": 0,
+   "frames": 444672
+  },
+  {
+   "file": "m045_l0.ogg",
+   "root": 45,
+   "layer": 0,
+   "frames": 436223
+  },
+  {
+   "file": "m047_l0.ogg",
+   "root": 47,
+   "layer": 0,
+   "frames": 427776
+  },
+  {
+   "file": "m049_l0.ogg",
+   "root": 49,
+   "layer": 0,
+   "frames": 419328
+  },
+  {
+   "file": "m051_l0.ogg",
+   "root": 51,
+   "layer": 0,
+   "frames": 410880
+  },
+  {
+   "file": "m053_l0.ogg",
+   "root": 53,
+   "layer": 0,
+   "frames": 402432
+  },
+  {
+   "file": "m055_l0.ogg",
+   "root": 55,
+   "layer": 0,
+   "frames": 393984
+  },
+  {
+   "file": "m057_l0.ogg",
+   "root": 57,
+   "layer": 0,
+   "frames": 385536
+  },
+  {
+   "file": "m059_l0.ogg",
+   "root": 59,
+   "layer": 0,
+   "frames": 377088
+  },
+  {
+   "file": "m061_l0.ogg",
+   "root": 61,
+   "layer": 0,
+   "frames": 368640
+  },
+  {
+   "file": "m063_l0.ogg",
+   "root": 63,
+   "layer": 0,
+   "frames": 360192
+  },
+  {
+   "file": "m065_l0.ogg",
+   "root": 65,
+   "layer": 0,
+   "frames": 351744
+  },
+  {
+   "file": "m067_l0.ogg",
+   "root": 67,
+   "layer": 0,
+   "frames": 343296
+  },
+  {
+   "file": "m069_l0.ogg",
+   "root": 69,
+   "layer": 0,
+   "frames": 334847
+  },
+  {
+   "file": "m071_l0.ogg",
+   "root": 71,
+   "layer": 0,
+   "frames": 326400
+  },
+  {
+   "file": "m073_l0.ogg",
+   "root": 73,
+   "layer": 0,
+   "frames": 317952
+  },
+  {
+   "file": "m075_l0.ogg",
+   "root": 75,
+   "layer": 0,
+   "frames": 309504
+  },
+  {
+   "file": "m077_l0.ogg",
+   "root": 77,
+   "layer": 0,
+   "frames": 301056
+  },
+  {
+   "file": "m079_l0.ogg",
+   "root": 79,
+   "layer": 0,
+   "frames": 292608
+  },
+  {
+   "file": "m081_l0.ogg",
+   "root": 81,
+   "layer": 0,
+   "frames": 284160
+  },
+  {
+   "file": "m083_l0.ogg",
+   "root": 83,
+   "layer": 0,
+   "frames": 275712
+  },
+  {
+   "file": "m085_l0.ogg",
+   "root": 85,
+   "layer": 0,
+   "frames": 267264
+  },
+  {
+   "file": "m087_l0.ogg",
+   "root": 87,
+   "layer": 0,
+   "frames": 258816
+  },
+  {
+   "file": "m089_l0.ogg",
+   "root": 89,
+   "layer": 0,
+   "frames": 250368
+  },
+  {
+   "file": "m091_l0.ogg",
+   "root": 91,
+   "layer": 0,
+   "frames": 241920
+  },
+  {
+   "file": "m093_l0.ogg",
+   "root": 93,
+   "layer": 0,
+   "frames": 233472
+  },
+  {
+   "file": "m095_l0.ogg",
+   "root": 95,
+   "layer": 0,
+   "frames": 225024
+  },
+  {
+   "file": "m097_l0.ogg",
+   "root": 97,
+   "layer": 0,
+   "frames": 216576
+  },
+  {
+   "file": "m099_l0.ogg",
+   "root": 99,
+   "layer": 0,
+   "frames": 150450
+  },
+  {
+   "file": "m101_l0.ogg",
+   "root": 101,
+   "layer": 0,
+   "frames": 121030
+  },
+  {
+   "file": "m103_l0.ogg",
+   "root": 103,
+   "layer": 0,
+   "frames": 112685
+  },
+  {
+   "file": "m105_l0.ogg",
+   "root": 105,
+   "layer": 0,
+   "frames": 114652
+  },
+  {
+   "file": "m107_l0.ogg",
+   "root": 107,
+   "layer": 0,
+   "frames": 114583
+  },
+  {
+   "file": "m108_l0.ogg",
+   "root": 108,
+   "layer": 0,
+   "frames": 105194
+  },
+  {
+   "file": "m021_l1.ogg",
+   "root": 21,
+   "layer": 1,
+   "frames": 537600
+  },
+  {
+   "file": "m023_l1.ogg",
+   "root": 23,
+   "layer": 1,
+   "frames": 529152
+  },
+  {
+   "file": "m025_l1.ogg",
+   "root": 25,
+   "layer": 1,
+   "frames": 520704
+  },
+  {
+   "file": "m027_l1.ogg",
+   "root": 27,
+   "layer": 1,
+   "frames": 512256
+  },
+  {
+   "file": "m029_l1.ogg",
+   "root": 29,
+   "layer": 1,
+   "frames": 503808
+  },
+  {
+   "file": "m031_l1.ogg",
+   "root": 31,
+   "layer": 1,
+   "frames": 495360
+  },
+  {
+   "file": "m033_l1.ogg",
+   "root": 33,
+   "layer": 1,
+   "frames": 486912
+  },
+  {
+   "file": "m035_l1.ogg",
+   "root": 35,
+   "layer": 1,
+   "frames": 478464
+  },
+  {
+   "file": "m037_l1.ogg",
+   "root": 37,
+   "layer": 1,
+   "frames": 470016
+  },
+  {
+   "file": "m039_l1.ogg",
+   "root": 39,
+   "layer": 1,
+   "frames": 461568
+  },
+  {
+   "file": "m041_l1.ogg",
+   "root": 41,
+   "layer": 1,
+   "frames": 453120
+  },
+  {
+   "file": "m043_l1.ogg",
+   "root": 43,
+   "layer": 1,
+   "frames": 444672
+  },
+  {
+   "file": "m045_l1.ogg",
+   "root": 45,
+   "layer": 1,
+   "frames": 436223
+  },
+  {
+   "file": "m047_l1.ogg",
+   "root": 47,
+   "layer": 1,
+   "frames": 427776
+  },
+  {
+   "file": "m049_l1.ogg",
+   "root": 49,
+   "layer": 1,
+   "frames": 419328
+  },
+  {
+   "file": "m051_l1.ogg",
+   "root": 51,
+   "layer": 1,
+   "frames": 410880
+  },
+  {
+   "file": "m053_l1.ogg",
+   "root": 53,
+   "layer": 1,
+   "frames": 402432
+  },
+  {
+   "file": "m055_l1.ogg",
+   "root": 55,
+   "layer": 1,
+   "frames": 393984
+  },
+  {
+   "file": "m057_l1.ogg",
+   "root": 57,
+   "layer": 1,
+   "frames": 385536
+  },
+  {
+   "file": "m059_l1.ogg",
+   "root": 59,
+   "layer": 1,
+   "frames": 377088
+  },
+  {
+   "file": "m061_l1.ogg",
+   "root": 61,
+   "layer": 1,
+   "frames": 368640
+  },
+  {
+   "file": "m063_l1.ogg",
+   "root": 63,
+   "layer": 1,
+   "frames": 360192
+  },
+  {
+   "file": "m065_l1.ogg",
+   "root": 65,
+   "layer": 1,
+   "frames": 351744
+  },
+  {
+   "file": "m067_l1.ogg",
+   "root": 67,
+   "layer": 1,
+   "frames": 343296
+  },
+  {
+   "file": "m069_l1.ogg",
+   "root": 69,
+   "layer": 1,
+   "frames": 334847
+  },
+  {
+   "file": "m071_l1.ogg",
+   "root": 71,
+   "layer": 1,
+   "frames": 326400
+  },
+  {
+   "file": "m073_l1.ogg",
+   "root": 73,
+   "layer": 1,
+   "frames": 317952
+  },
+  {
+   "file": "m075_l1.ogg",
+   "root": 75,
+   "layer": 1,
+   "frames": 309504
+  },
+  {
+   "file": "m077_l1.ogg",
+   "root": 77,
+   "layer": 1,
+   "frames": 301056
+  },
+  {
+   "file": "m079_l1.ogg",
+   "root": 79,
+   "layer": 1,
+   "frames": 292608
+  },
+  {
+   "file": "m081_l1.ogg",
+   "root": 81,
+   "layer": 1,
+   "frames": 284160
+  },
+  {
+   "file": "m083_l1.ogg",
+   "root": 83,
+   "layer": 1,
+   "frames": 275712
+  },
+  {
+   "file": "m085_l1.ogg",
+   "root": 85,
+   "layer": 1,
+   "frames": 267264
+  },
+  {
+   "file": "m087_l1.ogg",
+   "root": 87,
+   "layer": 1,
+   "frames": 258816
+  },
+  {
+   "file": "m089_l1.ogg",
+   "root": 89,
+   "layer": 1,
+   "frames": 250368
+  },
+  {
+   "file": "m091_l1.ogg",
+   "root": 91,
+   "layer": 1,
+   "frames": 241920
+  },
+  {
+   "file": "m093_l1.ogg",
+   "root": 93,
+   "layer": 1,
+   "frames": 233472
+  },
+  {
+   "file": "m095_l1.ogg",
+   "root": 95,
+   "layer": 1,
+   "frames": 169183
+  },
+  {
+   "file": "m097_l1.ogg",
+   "root": 97,
+   "layer": 1,
+   "frames": 168085
+  },
+  {
+   "file": "m099_l1.ogg",
+   "root": 99,
+   "layer": 1,
+   "frames": 117199
+  },
+  {
+   "file": "m101_l1.ogg",
+   "root": 101,
+   "layer": 1,
+   "frames": 131452
+  },
+  {
+   "file": "m103_l1.ogg",
+   "root": 103,
+   "layer": 1,
+   "frames": 100079
+  },
+  {
+   "file": "m105_l1.ogg",
+   "root": 105,
+   "layer": 1,
+   "frames": 85412
+  },
+  {
+   "file": "m107_l1.ogg",
+   "root": 107,
+   "layer": 1,
+   "frames": 112570
+  },
+  {
+   "file": "m108_l1.ogg",
+   "root": 108,
+   "layer": 1,
+   "frames": 111351
+  }
+ ]
+}
