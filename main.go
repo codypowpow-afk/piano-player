@@ -9,6 +9,8 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -108,6 +110,12 @@ type Game struct {
 	rnd     *rand.Rand
 	meter   float64
 
+	midi       midiState
+	midiIn     midiInput
+	kbPedal    atomic.Bool
+	midiSeen   int64
+	midiFlashT time.Time
+
 	face, faceSmall, faceBold, faceTitle text.Face
 	flash                                string
 	flashT                               time.Time
@@ -180,9 +188,11 @@ func newGame() *Game {
 	if err != nil {
 		log.Fatal(err)
 	}
-	p.SetBufferSize(35 * time.Millisecond)
+	p.SetBufferSize(20 * time.Millisecond) // low latency for MIDI keyboards
 	p.Play()
 	g.player = p
+	g.midi.curve.Store(1)
+	g.midiIn = startMIDI(g.handleMIDI)
 	return g
 }
 
@@ -239,6 +249,13 @@ func (g *Game) Update() error {
 			g.setPreset(i)
 		}
 	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyF5) {
+		g.cycleCurve()
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyF6) {
+		g.midiIn.Rescan()
+		g.toast("Rescanned MIDI devices")
+	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyTab) {
 		g.setPreset((g.preset + 1) % len(synth.Presets))
 	}
@@ -264,7 +281,9 @@ func (g *Game) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) || inpututil.IsKeyJustPressed(ebiten.KeyCapsLock) {
 		g.pedalLock = !g.pedalLock
 	}
-	if pd := g.pedalKey || g.pedalLock; pd != g.pedal {
+	kb := g.pedalKey || g.pedalLock
+	g.kbPedal.Store(kb)
+	if pd := kb || g.midi.sustain.Load(); pd != g.pedal {
 		g.pedal = pd
 		g.eng.SetPedal(pd)
 	}
@@ -296,11 +315,20 @@ func (g *Game) Update() error {
 	}
 
 	g.updateMouse()
+	if a := g.midi.activity.Load(); a != g.midiSeen {
+		g.midiSeen, g.midiFlashT = a, time.Now()
+	}
 
 	g.eng.Volume = g.volume
 	g.eng.Reverb = g.reverb
 	g.meter = math.Max(g.eng.Peak(), g.meter*0.9)
 	return nil
+}
+
+func (g *Game) cycleCurve() {
+	c := (g.midi.curve.Load() + 1) % int32(len(velCurves))
+	g.midi.curve.Store(c)
+	g.toast("MIDI velocity: " + velCurves[c].name)
 }
 
 func (g *Game) panic() {
@@ -313,6 +341,10 @@ func (g *Game) panic() {
 	}
 	g.mouseNote = -1
 	g.pedalLock = false
+	for i := range g.midi.down {
+		g.midi.down[i].Store(0)
+	}
+	g.midi.sustain.Store(false)
 	g.eng.AllNotesOff()
 	g.toast("All notes off")
 }
@@ -355,8 +387,17 @@ func (g *Game) updateMouse() {
 		if inRect(x, y, 196, 150, 34, 34) {
 			g.shiftOctave(1)
 		}
-		if inRect(x, y, 250, 150, 200, 34) {
+		if inRect(x, y, 250, 150, 220, 34) {
 			g.pedalLock = !g.pedalLock
+		}
+		if inRect(x, y, midiX+midiW-200, 150, 200, 34) {
+			g.cycleCurve()
+			return
+		}
+		if inRect(x, y, midiX, 150, midiW-200, 34) {
+			g.midiIn.Rescan()
+			g.toast("Rescanned MIDI devices")
+			return
 		}
 		for _, s := range g.sliders {
 			if inRect(x, y, int(s.x)-6, int(s.y)+14, int(s.w)+12, 26) {
@@ -467,13 +508,52 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.button(screen, 250, 150, 220, 34, pedalTxt, g.pedal)
 	g.drawText(screen, fmt.Sprintf("%d voices", g.eng.ActiveVoices()), g.face, 490, 158, colDim, text.AlignStart)
 	if g.flash != "" && time.Since(g.flashT) < 1500*time.Millisecond {
-		g.drawText(screen, g.flash, g.faceBold, 640, 158, colAccent, text.AlignStart)
+		g.drawText(screen, g.flash, g.faceBold, screenW-24, 22, colAccent, text.AlignEnd)
 	}
+	g.drawMIDI(screen)
 
 	g.drawKeyboard(screen)
 
-	help := "Lower row Z–/ and upper row Q–] play  ·  ← → octave  ·  ↑ ↓ touch  ·  Shift accent, Ctrl soft  ·  Space sustain  ·  F1–F4 / Tab piano  ·  Esc all notes off"
+	help := "Lower row Z–/ and upper row Q–] play  ·  ← → octave  ·  ↑ ↓ touch  ·  Shift accent, Ctrl soft  ·  Space sustain  ·  F1–F4 piano  ·  F5 MIDI velocity  ·  Esc all notes off"
 	g.drawText(screen, help, g.face, screenW/2, float64(kbY+whiteH+30), colDim, text.AlignCenter)
+}
+
+const (
+	midiX = 640
+	midiW = screenW - 24 - midiX
+)
+
+func (g *Game) drawMIDI(screen *ebiten.Image) {
+	rect(screen, midiX, 150, midiW, 34, colPanel)
+	g.drawText(screen, "MIDI", g.faceSmall, midiX+12, 161, colDim, text.AlignStart)
+	open, busy := g.midiIn.Devices()
+	dot := color.Color(colPanelHi)
+	if len(open) > 0 {
+		dot = color.RGBA{0x4f, 0x8a, 0x5a, 0xff}
+		if time.Since(g.midiFlashT) < 120*time.Millisecond {
+			dot = color.RGBA{0x8c, 0xf0, 0x9a, 0xff}
+		}
+	}
+	vector.DrawFilledCircle(screen, midiX+58, 167, 6, dot, true)
+	msg, mc := "No MIDI keyboard found. Plug one in any time (F6 / click to rescan)", color.Color(colDim)
+	if len(open) > 0 {
+		msg, mc = strings.Join(open, " + "), colText
+	}
+	if len(busy) > 0 {
+		msg, mc = busy[0]+" is in use by another program. Close it to play here", colAccent
+		if len(open) > 0 {
+			msg = strings.Join(open, " + ") + "   (" + busy[0] + " busy)"
+		}
+	}
+	if r := []rune(msg); len(r) > 58 {
+		msg = string(r[:57]) + "…"
+	}
+	g.drawText(screen, msg, g.face, midiX+74, 158, mc, text.AlignStart)
+	extra := ""
+	if g.midi.soft.Load() {
+		extra = "SOFT  "
+	}
+	g.drawText(screen, extra+"Velocity: "+velCurves[g.midi.curve.Load()].name+" (F5)", g.faceSmall, midiX+midiW-12, 161, colAccent2, text.AlignEnd)
 }
 
 func (g *Game) button(dst *ebiten.Image, x, y, w, h float32, label string, on bool) {
@@ -522,7 +602,7 @@ func (g *Game) drawKeyboard(screen *ebiten.Image) {
 		}
 		x := g.keyX[m]
 		c := colIvory
-		if g.down[m] > 0 {
+		if g.down[m] > 0 || g.midi.down[m].Load() > 0 {
 			c = color.RGBA{0xf0, 0xc2, 0x78, 0xff}
 		}
 		rect(screen, x+1, kbY, whiteW-2, whiteH, c)
@@ -541,7 +621,7 @@ func (g *Game) drawKeyboard(screen *ebiten.Image) {
 		}
 		x := g.keyX[m]
 		c, hiC := colEbony, colEbonyHi
-		if g.down[m] > 0 {
+		if g.down[m] > 0 || g.midi.down[m].Load() > 0 {
 			c, hiC = color.RGBA{0xb0, 0x7a, 0x30, 0xff}, color.RGBA{0xd8, 0xa0, 0x50, 0xff}
 		}
 		rect(screen, x, kbY, blackW, blackH, c)

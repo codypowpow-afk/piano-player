@@ -1,6 +1,6 @@
 # Piano Player
 
-A standalone acoustic piano for Windows that you play with your computer keyboard (or mouse).
+A standalone acoustic piano for Windows that you play with a USB MIDI keyboard, your computer keyboard, or the mouse.
 One small `.exe`, no installer, no sample files, works offline.
 
 **Download:** [`download/PianoPlayer.exe`](../../raw/main/download/PianoPlayer.exe), then double-click it.
@@ -36,10 +36,25 @@ on-screen keyboard, and the gold bar above it shows which part of the 88 keys yo
 | hold `Shift` / `Ctrl` | Accent (harder) / soft for the notes you press |
 | hold `Space` | Sustain pedal |
 | `Enter` or `Caps Lock` | Latch the sustain pedal on/off |
+| `F5` / `F6` | MIDI velocity curve / rescan MIDI devices |
 | `Esc` | All notes off |
 | Mouse | Click keys to play (lower on the key = louder), drag for glissando |
 
 Sliders set volume, room (reverb) amount and touch.
+
+## MIDI keyboard
+
+Plug in any USB MIDI keyboard or digital piano, before or after starting the app. It's found
+automatically (no drivers or settings needed for class-compliant keyboards) and its name shows in
+the MIDI bar, with a light that flashes as you play. Several keyboards can be connected at once.
+
+- **Velocity sensitive**: how hard you play sets both loudness and tone, like a real piano.
+- **Sustain pedal** (CC 64) and **soft pedal / una corda** (CC 67) work.
+- **F5** (or click the velocity label) switches the velocity curve: **Light** (loud comes
+  easily), **Normal**, or **Heavy** (you have to dig in for forte).
+- **F6** (or click the MIDI bar) rescans devices.
+- If the bar says a keyboard is *in use by another program*, close your DAW or other MIDI app:
+  Windows only lets one program use a MIDI device at a time.
 
 ## How the sound is made
 
