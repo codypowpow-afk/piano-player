@@ -3,7 +3,7 @@
 A standalone acoustic piano for Windows that you play with your computer keyboard (or mouse).
 One small `.exe`, no installer, no sample files, works offline.
 
-**Download:** grab `PianoPlayer.exe` from the [Releases](../../releases) page and double-click it.
+**Download:** [`download/PianoPlayer.exe`](../../raw/main/download/PianoPlayer.exe), then double-click it.
 (Windows SmartScreen may warn because the exe isn't code-signed: click **More info → Run anyway**.)
 
 ## Pianos
