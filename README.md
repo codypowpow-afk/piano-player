@@ -36,7 +36,8 @@ on-screen keyboard, and the gold bar above it shows which part of the 88 keys yo
 
 | Control | Action |
 |---------|--------|
-| `←` / `→` (or PgDn / PgUp) | Octave down / up |
+| `←` / `→` | Octave down / up for the computer keys |
+| `Shift` + `←` / `→` | Octave down / up for the MIDI keyboard (or the ◄ ► in the MIDI bar) |
 | `↑` / `↓` | Touch (how hard you play: ppp … fff). Harder = louder **and** brighter |
 | hold `Shift` / `Ctrl` | Accent (harder) / soft for the notes you press |
 | hold `Space` | Sustain pedal |
@@ -58,6 +59,9 @@ the MIDI bar, with a light that flashes as you play. Several keyboards can be co
 - **Sustain pedal** (CC 64) and **soft pedal / una corda** (CC 67) work.
 - **F5** (or click the velocity label) switches the velocity curve: **Light** (loud comes
   easily), **Normal**, or **Heavy** (you have to dig in for forte).
+- **Shift+← / Shift+→** (or the ◄ OCT ► buttons in the MIDI bar) shift the MIDI keyboard down or
+  up by octaves, up to 4 each way, handy for small keyboards. Held notes release correctly even
+  if you shift while playing.
 - **F6** (or click the MIDI bar) rescans devices.
 - If the bar says a keyboard is *in use by another program*, close your DAW or other MIDI app:
   Windows only lets one program use a MIDI device at a time.

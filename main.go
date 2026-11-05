@@ -29,7 +29,7 @@ import (
 
 const (
 	screenW = 1400
-	screenH = 600
+	screenH = 620
 
 	kbX     = 24
 	kbY     = 320
@@ -318,11 +318,21 @@ func (g *Game) Update() error {
 		}
 	}
 	// Octave / touch.
+	// Arrows move the computer keys; with Shift they move the MIDI keyboard.
+	shift := ebiten.IsKeyPressed(ebiten.KeyShift)
 	if inpututil.IsKeyJustPressed(ebiten.KeyArrowLeft) {
-		g.shiftOctave(-1)
+		if shift {
+			g.shiftMIDIOctave(-1)
+		} else {
+			g.shiftOctave(-1)
+		}
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) {
-		g.shiftOctave(1)
+		if shift {
+			g.shiftMIDIOctave(1)
+		} else {
+			g.shiftOctave(1)
+		}
 	}
 	if k := inpututil.KeyPressDuration(ebiten.KeyArrowUp); k == 1 || (k > 90 && k%15 == 0) {
 		g.touch = math.Min(1, g.touch+0.05)
@@ -448,11 +458,19 @@ func (g *Game) updateMouse() {
 		if inRect(x, y, 250, ctlY, 220, 34) {
 			g.pedalLock = !g.pedalLock
 		}
+		if inRect(x, y, midiOctX, ctlY, 28, 34) {
+			g.shiftMIDIOctave(-1)
+			return
+		}
+		if inRect(x, y, midiOctX+100, ctlY, 28, 34) {
+			g.shiftMIDIOctave(1)
+			return
+		}
 		if inRect(x, y, midiX+midiW-200, ctlY, 200, 34) {
 			g.cycleCurve()
 			return
 		}
-		if inRect(x, y, midiX, ctlY, midiW-200, 34) {
+		if inRect(x, y, midiX, ctlY, midiOctX-midiX, 34) {
 			g.midiIn.Rescan()
 			g.toast("Rescanned MIDI devices")
 			return
@@ -602,13 +620,16 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	g.drawKeyboard(screen)
 
-	help := "Lower row Z–/ and upper row Q–] play  ·  ← → octave  ·  ↑ ↓ touch  ·  Shift accent, Ctrl soft  ·  Space sustain  ·  Tab / PgUp PgDn sound  ·  F1–F4 category  ·  F5 MIDI velocity  ·  Esc all notes off"
-	g.drawText(screen, help, g.face, screenW/2, float64(kbY+whiteH+30), colDim, text.AlignCenter)
+	help1 := "Play: lower row Z–/ and upper row Q–]  ·  ← → octave  ·  Shift+← → MIDI keyboard octave  ·  ↑ ↓ touch  ·  Shift accent, Ctrl soft"
+	help2 := "Space sustain (Enter latches)  ·  Tab / PgUp PgDn change sound  ·  F1–F4 category  ·  F5 MIDI velocity  ·  F6 MIDI rescan  ·  Esc all notes off"
+	g.drawText(screen, help1, g.face, screenW/2, float64(kbY+whiteH+16), colDim, text.AlignCenter)
+	g.drawText(screen, help2, g.face, screenW/2, float64(kbY+whiteH+38), colDim, text.AlignCenter)
 }
 
 const (
-	midiX = 640
-	midiW = screenW - 24 - midiX
+	midiX    = 640
+	midiW    = screenW - 24 - midiX
+	midiOctX = midiX + midiW - 340 // MIDI octave ◄ OCT ► control
 )
 
 func (g *Game) drawMIDI(screen *ebiten.Image) {
@@ -623,20 +644,29 @@ func (g *Game) drawMIDI(screen *ebiten.Image) {
 		}
 	}
 	vector.DrawFilledCircle(screen, midiX+58, ctlY+17, 6, dot, true)
-	msg, mc := "No MIDI keyboard found. Plug one in any time (F6 / click to rescan)", color.Color(colDim)
+	msg, mc := "No MIDI keyboard yet (F6 rescan)", color.Color(colDim)
 	if len(open) > 0 {
 		msg, mc = strings.Join(open, " + "), colText
 	}
 	if len(busy) > 0 {
-		msg, mc = busy[0]+" is in use by another program. Close it to play here", colAccent
+		msg, mc = busy[0]+" busy: close other app", colAccent
 		if len(open) > 0 {
 			msg = strings.Join(open, " + ") + "   (" + busy[0] + " busy)"
 		}
 	}
-	if r := []rune(msg); len(r) > 58 {
-		msg = string(r[:57]) + "…"
+	if r := []rune(msg); len(r) > 30 {
+		msg = string(r[:29]) + "…"
 	}
 	g.drawText(screen, msg, g.face, midiX+74, ctlY+8, mc, text.AlignStart)
+	// MIDI octave shift.
+	o := int(g.midi.octave.Load())
+	oc := colText
+	if o != 0 {
+		oc = colAccent
+	}
+	g.button(screen, midiOctX, ctlY+3, 28, 28, "◄", false)
+	g.drawText(screen, "OCT "+signed(o), g.faceBold, midiOctX+64, ctlY+8, oc, text.AlignCenter)
+	g.button(screen, midiOctX+100, ctlY+3, 28, 28, "►", false)
 	extra := ""
 	if g.midi.soft.Load() {
 		extra = "SOFT  "
