@@ -177,7 +177,8 @@ type voice struct {
 }
 
 type event struct {
-	kind int // 0 on, 1 off, 2 pedal, 3 preset, 4 all off
+	kind int // 0 on, 1 off, 2 pedal, 3 preset, 4 all off, 5 arp settings
+	arp  ArpSettings
 	note int
 	vel  float64
 	on   bool
@@ -200,6 +201,7 @@ type Engine struct {
 	Reverb float64
 
 	fx      *fxChain
+	arp     *arp
 	bufL    [blockSize]float64
 	bufR    [blockSize]float64
 	pending []float32
@@ -220,6 +222,7 @@ func NewEngine(assets fs.FS) *Engine {
 		Volume:  0.8,
 		Reverb:  1,
 		fx:      newFX(),
+		arp:     newArp(),
 		limGain: 1,
 		rnd:     rand.New(rand.NewSource(1)),
 		sets:    map[string]*SampleSet{},
@@ -273,6 +276,15 @@ func (e *Engine) NoteOn(midi int, vel float64) { e.push(event{kind: 0, note: mid
 func (e *Engine) NoteOff(midi int)             { e.push(event{kind: 1, note: midi}) }
 func (e *Engine) SetPedal(down bool)           { e.push(event{kind: 2, on: down}) }
 func (e *Engine) AllNotesOff()                 { e.push(event{kind: 4}) }
+
+// SetArp changes the arpeggiator settings (turning it on routes played notes through it).
+func (e *Engine) SetArp(s ArpSettings) { e.push(event{kind: 5, arp: s}) }
+
+// ArpSounding reports whether the arpeggiator is currently playing this note (for the UI).
+func (e *Engine) ArpSounding(n int) bool { return n >= 0 && n < 128 && e.arp.sounding[n].Load() }
+
+// ArpBeat counts quarter notes played by the arpeggiator (for a beat light).
+func (e *Engine) ArpBeat() int64 { return e.arp.beat.Load() }
 
 // SetPreset switches to preset i. Its sample set must already be loaded (see Load).
 func (e *Engine) SetPreset(i int) error {
@@ -439,9 +451,43 @@ func (e *Engine) drain() {
 	for _, ev := range q {
 		switch ev.kind {
 		case 0:
-			e.noteOn(ev.note, ev.vel)
+			if e.arp.s.On {
+				e.arp.press(ev.note, ev.vel)
+			} else {
+				e.noteOn(ev.note, ev.vel)
+				if ev.note >= 0 && ev.note < 128 {
+					e.arp.direct[ev.note] = true
+				}
+			}
 		case 1:
-			e.noteOff(ev.note)
+			if e.arp.s.On {
+				e.arp.release(ev.note)
+			}
+			// Notes started before the arpeggiator was switched on still need releasing.
+			if ev.note >= 0 && ev.note < 128 && (e.arp.direct[ev.note] || !e.arp.s.On) {
+				e.arp.direct[ev.note] = false
+				e.noteOff(ev.note)
+			}
+		case 5:
+			ns := ev.arp
+			ns.BPM = math.Max(30, math.Min(300, ns.BPM))
+			ns.Gate = math.Max(0.05, math.Min(2, ns.Gate))
+			ns.Swing = math.Max(0, math.Min(0.6, ns.Swing))
+			if ns.Octaves < 1 {
+				ns.Octaves = 1
+			} else if ns.Octaves > 4 {
+				ns.Octaves = 4
+			}
+			if ns.Mode < 0 || ns.Mode >= len(ArpModes) {
+				ns.Mode = 0
+			}
+			if ns.Rate < 0 || ns.Rate >= len(ArpRates) {
+				ns.Rate = 0
+			}
+			if e.arp.s.On && !ns.On {
+				e.arp.stop(e.noteOff)
+			}
+			e.arp.s = ns
 		case 2:
 			e.setPedal(ev.on)
 		case 3:
@@ -458,6 +504,7 @@ func (e *Engine) drain() {
 			e.pre, e.set = ev.pre, ev.set
 			e.fx.configure(ev.pre)
 		case 4:
+			e.arp.stop(e.noteOff)
 			for i := range e.voices {
 				v := &e.voices[i]
 				if v.active {
@@ -548,6 +595,7 @@ func (v *voice) render(outL, outR *[blockSize]float64) {
 
 func (e *Engine) renderBlock() {
 	e.drain()
+	e.arp.tick(blockSize, e.noteOn, e.noteOff)
 	for j := range e.bufL {
 		e.bufL[j], e.bufR[j] = 0, 0
 	}

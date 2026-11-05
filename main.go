@@ -29,10 +29,10 @@ import (
 
 const (
 	screenW = 1400
-	screenH = 620
+	screenH = 666
 
 	kbX     = 24
-	kbY     = 320
+	kbY     = 366
 	whiteW  = 26
 	whiteH  = 236
 	blackW  = 16
@@ -111,6 +111,17 @@ type Game struct {
 	isBlack [128]bool
 	rnd     *rand.Rand
 	meter   float64
+
+	arp      synth.ArpSettings
+	arpCtls  []*arpCtl
+	recipe   int
+	taps     []time.Time
+	arpBeat  int64
+	arpBeatT time.Time
+	holdCtl  *arpCtl
+	holdSide int
+	holdT    time.Time
+	holdNext time.Time
 
 	want        atomic.Int32 // preset the user asked for (loading may lag behind)
 	loading     atomic.Bool
@@ -202,6 +213,9 @@ func newGame() *Game {
 	g.player = p
 	g.midi.curve.Store(1)
 	g.midiIn = startMIDI(g.handleMIDI)
+	g.arp = synth.DefaultArp()
+	g.buildArpControls()
+	g.eng.SetArp(g.arp)
 	g.setPreset(0)
 	return g
 }
@@ -302,6 +316,23 @@ func (g *Game) Update() error {
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyPageUp) {
 		g.setPreset(g.preset - 1)
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyF7) {
+		g.arp.On = !g.arp.On
+		g.arpChanged()
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyF8) {
+		d := 1
+		if ebiten.IsKeyPressed(ebiten.KeyShift) {
+			d = -1
+		}
+		g.arp.Mode = wrap(g.arp.Mode+d, len(synth.ArpModes))
+		g.arpChanged()
+		g.toast("Arp pattern: " + synth.ArpModes[g.arp.Mode])
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyF9) {
+		g.arp.Latch = !g.arp.Latch
+		g.arpChanged()
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF5) {
 		g.cycleCurve()
@@ -449,6 +480,17 @@ func (g *Game) updateMouse() {
 				return
 			}
 		}
+		for _, c := range g.arpCtls {
+			if inRect(x, y, c.x, arpY, c.w, 34) {
+				side := c.side(x)
+				c.act(side)
+				g.arpChanged()
+				if c.inc != nil && side != 0 {
+					g.holdCtl, g.holdSide, g.holdT, g.holdNext = c, side, time.Now(), time.Now().Add(400*time.Millisecond)
+				}
+				return
+			}
+		}
 		if inRect(x, y, 24, ctlY, 34, 34) {
 			g.shiftOctave(-1)
 		}
@@ -478,6 +520,30 @@ func (g *Game) updateMouse() {
 		for _, s := range g.sliders {
 			if inRect(x, y, int(s.x)-6, int(s.y)+14, int(s.w)+12, 26) {
 				g.dragSlider = s
+			}
+		}
+	}
+	// Hold a stepper arrow to keep changing the value.
+	if g.holdCtl != nil {
+		if !pressed {
+			g.holdCtl = nil
+		} else if time.Now().After(g.holdNext) {
+			g.holdCtl.act(g.holdSide)
+			g.arpChanged()
+			g.holdNext = time.Now().Add(55 * time.Millisecond)
+		}
+		return
+	}
+	// Mouse wheel over an arp control steps it.
+	if _, wy := ebiten.Wheel(); wy != 0 {
+		for _, c := range g.arpCtls {
+			if inRect(x, y, c.x, arpY, c.w, 34) && c.inc != nil {
+				if wy > 0 {
+					c.act(1)
+				} else {
+					c.act(-1)
+				}
+				g.arpChanged()
 			}
 		}
 	}
@@ -617,11 +683,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		g.drawText(screen, fl, g.faceBold, screenW-24, 22, colAccent, text.AlignEnd)
 	}
 	g.drawMIDI(screen)
+	g.drawArp(screen)
 
 	g.drawKeyboard(screen)
 
 	help1 := "Play: lower row Z–/ and upper row Q–]  ·  ← → octave  ·  Shift+← → MIDI keyboard octave  ·  ↑ ↓ touch  ·  Shift accent, Ctrl soft"
-	help2 := "Space sustain (Enter latches)  ·  Tab / PgUp PgDn change sound  ·  F1–F4 category  ·  F5 MIDI velocity  ·  F6 MIDI rescan  ·  Esc all notes off"
+	help2 := "Space sustain (Enter latches)  ·  Tab / PgUp PgDn sound  ·  F1–F4 category  ·  F5 MIDI velocity  ·  F6 MIDI rescan  ·  F7 arp, F8 pattern, F9 latch  ·  Esc all off"
 	g.drawText(screen, help1, g.face, screenW/2, float64(kbY+whiteH+16), colDim, text.AlignCenter)
 	g.drawText(screen, help2, g.face, screenW/2, float64(kbY+whiteH+38), colDim, text.AlignCenter)
 }
@@ -722,6 +789,8 @@ func (g *Game) drawKeyboard(screen *ebiten.Image) {
 		c := colIvory
 		if g.down[m] > 0 || g.midi.down[m].Load() > 0 {
 			c = color.RGBA{0xf0, 0xc2, 0x78, 0xff}
+		} else if g.eng.ArpSounding(m) {
+			c = color.RGBA{0xa8, 0xd8, 0xe6, 0xff}
 		}
 		rect(screen, x+1, kbY, whiteW-2, whiteH, c)
 		rect(screen, x+1, kbY+whiteH-8, whiteW-2, 8, colIvoryLo)
@@ -741,6 +810,8 @@ func (g *Game) drawKeyboard(screen *ebiten.Image) {
 		c, hiC := colEbony, colEbonyHi
 		if g.down[m] > 0 || g.midi.down[m].Load() > 0 {
 			c, hiC = color.RGBA{0xb0, 0x7a, 0x30, 0xff}, color.RGBA{0xd8, 0xa0, 0x50, 0xff}
+		} else if g.eng.ArpSounding(m) {
+			c, hiC = color.RGBA{0x3c, 0x7c, 0x90, 0xff}, color.RGBA{0x6a, 0xa8, 0xbc, 0xff}
 		}
 		rect(screen, x, kbY, blackW, blackH, c)
 		rect(screen, x+2, kbY, blackW-4, blackH-8, hiC)

@@ -44,10 +44,33 @@ on-screen keyboard, and the gold bar above it shows which part of the 88 keys yo
 | `Enter` or `Caps Lock` | Latch the sustain pedal on/off |
 | `Tab` / `PgUp` `PgDn` / `F1`–`F4` | Next / previous sound, jump to category |
 | `F5` / `F6` | MIDI velocity curve / rescan MIDI devices |
+| `F7` / `F8` / `F9` | Arpeggiator on/off / next pattern / latch |
 | `Esc` | All notes off |
 | Mouse | Click keys to play (lower on the key = louder), drag for glissando |
 
 Sliders set volume, room (reverb) amount and touch.
+
+## Arpeggiator
+
+Turn it on with **F7** (or click **ARPEGGIATOR**), then hold a chord on the MIDI keyboard,
+the computer keys or the mouse. Notes the arp is playing light up blue on the keyboard, and
+the dot by the ON button flashes on each beat. It keeps your MIDI velocity, and works with the
+sustain pedal.
+
+| Option | Choices |
+|--------|---------|
+| **Pattern** (F8 / Shift+F8) | Up · Down · Up-Down · Down-Up · Up & Down · Random · As Played · Chord · Alberti (low-high-mid-high, the classical left hand) · Converge · Diverge · Thumb (lowest note alternates with the rest) |
+| **Rate** | 1/4 · 1/8 · 1/8 triplet · 1/16 · 1/16 triplet · 1/32 |
+| **Tempo** | 30–300 BPM (Shift = steps of 10), or click **TAP** in time |
+| **Octaves** | Spread the pattern over 1–4 octaves |
+| **Gate** | Note length, 10%–200% of a step (over 100% = legato, overlapping) |
+| **Swing** | 0–60% shuffle |
+| **Latch** (F9) | Keeps playing after you let go; a new chord replaces it |
+| **Accent** | Downbeats louder, offbeats softer |
+| **Presets** | Classic Alberti · Rolling 8ths · Harp Glissando · Swing Triplets · Dreamy Random · Stabbing Chords · Funky 16ths · Thumb Ostinato · Cascade |
+
+Click the left part of a control to go back, the rest to go forward; hold to repeat, or use the
+mouse wheel.
 
 ## MIDI keyboard
 
