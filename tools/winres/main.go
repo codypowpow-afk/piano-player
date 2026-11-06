@@ -4,6 +4,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 
@@ -14,6 +15,11 @@ import (
 )
 
 func main() {
+	name := flag.String("name", "Piano Player", "product name")
+	desc := flag.String("desc", "Piano Player - acoustic grand and upright piano", "file description")
+	exe := flag.String("exe", "PianoPlayer.exe", "original file name")
+	out := flag.String("o", "rsrc_windows_amd64.syso", "output .syso path")
+	flag.Parse()
 	icon, err := winres.NewIconFromResizedImage(appicon.Image(256), []int{256, 64, 48, 32, 16})
 	if err != nil {
 		log.Fatal(err)
@@ -25,11 +31,11 @@ func main() {
 	v := version.Info{}
 	v.SetFileVersion("1.0.0.0")
 	v.SetProductVersion("1.0.0.0")
-	v.Set(0, version.ProductName, "Piano Player")
-	v.Set(0, version.FileDescription, "Piano Player - acoustic grand and upright piano")
-	v.Set(0, version.OriginalFilename, "PianoPlayer.exe")
+	v.Set(0, version.ProductName, *name)
+	v.Set(0, version.FileDescription, *desc)
+	v.Set(0, version.OriginalFilename, *exe)
 	rs.SetVersionInfo(v)
-	f, err := os.Create("rsrc_windows_amd64.syso")
+	f, err := os.Create(*out)
 	if err != nil {
 		log.Fatal(err)
 	}
