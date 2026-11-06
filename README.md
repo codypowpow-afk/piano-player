@@ -6,6 +6,38 @@ One `.exe` with the instrument recordings built in, no installer, works offline.
 **Download:** [`download/PianoPlayer.exe`](../../raw/main/download/PianoPlayer.exe), then double-click it.
 (Windows SmartScreen may warn because the exe isn't code-signed: click **More info → Run anyway**.)
 
+## Piano Lessons (new): learn from sheet music
+
+`download/PianoLessons.exe` is a second app built on the same piano engine. Give it sheet music
+and it turns the notes into **falling blocks that land on the keys you need to play**. In
+**Wait** mode it stops at every note or chord until you press the right keys, then moves on.
+
+- **Open:** drag a file onto the window, use **Open file…** (`Ctrl+O`), or drop the file onto the exe.
+  - **Scanned PDF** or **page images (PNG/JPG)**: read by the built-in sheet-music reader (no
+    other software needed; a 12-page score takes about 10 s).
+  - **MIDI** and **MusicXML (.musicxml / .mxl)**: exact, use these when you have them.
+- Comes with **Chopin's Nocturnes Op. 9** (all three), read from a scanned PDF.
+- Right hand is teal, left hand amber. Practise one hand while the app plays the other, loop
+  1–8 bars, slow the tempo down, or press **Listen** to hear the piece.
+- Imported pieces are kept in the **Library** (`F10`). **Export MIDI** saves what was read, so
+  you can fix it in any notation program and open the corrected file again.
+
+| Key | Action |
+|-----|--------|
+| `Space` | play / pause |
+| `Home` | restart |
+| `Tab` | skip the current note (for a note the reader got wrong) |
+| `F1` / `F2` / `F3` / `F4` | hands (both, right, left) · wait mode · listen · loop |
+| `↑` `↓` | tempo |
+| `PgUp` `PgDn` | previous / next bar · mouse wheel scrolls through the song while paused |
+| `F7` `F8` · `F9` · `F10` | sound · note names · library |
+| `Z`…`/`, `Q`…`]`, `←` `→`, `Shift` | computer-keyboard piano, octave, sustain |
+
+The sheet-music reader works on clean engraved scans. It reliably finds staves, clefs, key
+signatures, barlines, noteheads and chords. Accidentals inside a bar and complex rhythms are
+harder, so some notes may be wrong: press `Tab` to skip one, or use MIDI/MusicXML for perfect
+input. See [`PIANO_LESSONS_NOTES.md`](PIANO_LESSONS_NOTES.md) for how it works.
+
 ## Sounds (24 presets)
 
 Real recorded instruments, sampled at several velocity layers so soft playing sounds soft
@@ -122,6 +154,7 @@ Needs Go 1.22+. The exe is cross-compiled; no Windows machine needed.
 
 ```
 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -H=windowsgui" -o dist/PianoPlayer.exe .
+GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -H=windowsgui" -o dist/PianoLessons.exe ./lessons
 ```
 
 The samples in `assets/` are built from the original libraries by
