@@ -46,10 +46,10 @@ type openFileNameW struct {
 }
 
 const (
-	ofnExplorer        = 0x00080000
-	ofnFileMustExist   = 0x00001000
-	ofnPathMustExist   = 0x00000800
-	ofnNoChangeDir     = 0x00000008
+	ofnExplorer         = 0x00080000
+	ofnFileMustExist    = 0x00001000
+	ofnPathMustExist    = 0x00000800
+	ofnNoChangeDir      = 0x00000008
 	ofnAllowMultiSelect = 0x00000200
 )
 
@@ -81,13 +81,13 @@ func openFileDialog() ([]string, bool) {
 	buf := make([]uint16, 32*1024)
 	title, _ := syscall.UTF16PtrFromString("Open sheet music")
 	ofn := openFileNameW{
-		hwndOwner:   hwnd,
-		lpstrFilter: &filter[0],
+		hwndOwner:    hwnd,
+		lpstrFilter:  &filter[0],
 		nFilterIndex: 1,
-		lpstrFile:   &buf[0],
-		nMaxFile:    uint32(len(buf)),
-		lpstrTitle:  title,
-		flags:       ofnExplorer | ofnFileMustExist | ofnPathMustExist | ofnNoChangeDir | ofnAllowMultiSelect,
+		lpstrFile:    &buf[0],
+		nMaxFile:     uint32(len(buf)),
+		lpstrTitle:   title,
+		flags:        ofnExplorer | ofnFileMustExist | ofnPathMustExist | ofnNoChangeDir | ofnAllowMultiSelect,
 	}
 	ofn.lStructSize = uint32(unsafe.Sizeof(ofn))
 	r, _, _ := procGetOpenFileNameW.Call(uintptr(unsafe.Pointer(&ofn)))

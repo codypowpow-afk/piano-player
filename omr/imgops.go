@@ -138,9 +138,9 @@ func clampf(v, lo, hi float64) float64 {
 
 // Component is a connected group of ink pixels.
 type Component struct {
-	ID                     int
-	X0, Y0, X1, Y1         int // inclusive-exclusive bbox
-	Area                   int
+	ID             int
+	X0, Y0, X1, Y1 int // inclusive-exclusive bbox
+	Area           int
 }
 
 func (c *Component) W() int { return c.X1 - c.X0 }

@@ -30,14 +30,14 @@ type Note struct {
 
 // Song is a playable piece.
 type Song struct {
-	Title    string    `json:"title"`
-	Source   string    `json:"source,omitempty"`
-	Tempo    float64   `json:"tempo"`              // suggested quarter-note BPM
-	BeatsPer float64   `json:"beats"`              // beats per measure (display)
-	KeyFifths int      `json:"key"`                // -7..7
-	Measures []float64 `json:"measures,omitempty"` // start beat of each measure
-	Notes    []Note    `json:"notes"`
-	Warnings []string  `json:"warnings,omitempty"`
+	Title     string    `json:"title"`
+	Source    string    `json:"source,omitempty"`
+	Tempo     float64   `json:"tempo"`              // suggested quarter-note BPM
+	BeatsPer  float64   `json:"beats"`              // beats per measure (display)
+	KeyFifths int       `json:"key"`                // -7..7
+	Measures  []float64 `json:"measures,omitempty"` // start beat of each measure
+	Notes     []Note    `json:"notes"`
+	Warnings  []string  `json:"warnings,omitempty"`
 }
 
 // Step is a group of notes that start together.

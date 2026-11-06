@@ -1,9 +1,11 @@
 package omr
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"runtime"
+	"runtime/debug"
 	"sort"
 	"sync"
 
@@ -27,41 +29,76 @@ type PieceInfo struct {
 // Progress is called with (done, total) while pages are analysed.
 type Progress func(done, total int, msg string)
 
-// ReadPDF extracts the page images of a PDF and recognises the music.
+// ReadPDF reads the page images of a PDF and recognises the music. Pages are
+// decoded and analysed a few at a time to keep memory use modest.
 func ReadPDF(data []byte, title string, prog Progress) (*Result, error) {
 	if prog != nil {
 		prog(0, 1, "Reading PDF pages…")
 	}
-	pages, err := ExtractPages(data)
+	ps, err := OpenPDF(data)
 	if err != nil {
 		return nil, err
 	}
-	return ReadPages(pages, title, prog), nil
+	var firstErr error
+	var emu sync.Mutex
+	res := readWith(ps.Len(), func(i int) *Bitmap {
+		bm, err := ps.Page(i)
+		if err != nil {
+			emu.Lock()
+			if firstErr == nil {
+				firstErr = err
+			}
+			emu.Unlock()
+			return nil
+		}
+		return bm
+	}, title, prog)
+	if len(res.Songs) == 0 && firstErr != nil {
+		return nil, firstErr
+	}
+	if len(res.Songs) == 0 {
+		return nil, errors.New("no music staves were found in this PDF")
+	}
+	return res, nil
 }
 
 // ReadPages recognises music on already-decoded page bitmaps.
 func ReadPages(pages []*Bitmap, title string, prog Progress) *Result {
-	res := &Result{Pages: make([]*PageResult, len(pages))}
+	return readWith(len(pages), func(i int) *Bitmap {
+		p := pages[i]
+		pages[i] = nil
+		return p
+	}, title, prog)
+}
+
+func readWith(n int, page func(i int) *Bitmap, title string, prog Progress) *Result {
+	res := &Result{Pages: make([]*PageResult, n)}
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	done := 0
-	sem := make(chan struct{}, max(1, min(runtime.NumCPU(), 4)))
-	for i, p := range pages {
+	sem := make(chan struct{}, max(1, min(runtime.NumCPU(), 2)))
+	old := debug.SetGCPercent(40)
+	defer debug.SetGCPercent(old)
+	for i := 0; i < n; i++ {
 		wg.Add(1)
-		go func(i int, p *Bitmap) {
+		go func(i int) {
 			defer wg.Done()
 			sem <- struct{}{}
-			pr := AnalyzePage(p)
+			var pr *PageResult
+			if bm := page(i); bm != nil {
+				pr = AnalyzePage(bm)
+				pr.Img, pr.closed, pr.filled, pr.closedLab, pr.closedComps = nil, nil, nil, nil, nil
+			}
+			debug.FreeOSMemory()
 			<-sem
-			pr.Img = nil // free memory; Clean is kept for review overlays
 			mu.Lock()
 			res.Pages[i] = pr
 			done++
 			if prog != nil {
-				prog(done, len(pages), fmt.Sprintf("Reading music: page %d of %d", done, len(pages)))
+				prog(done, n, fmt.Sprintf("Reading music: page %d of %d", done, n))
 			}
 			mu.Unlock()
-		}(i, p)
+		}(i)
 	}
 	wg.Wait()
 	res.assemble(title)

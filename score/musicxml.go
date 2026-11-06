@@ -42,9 +42,9 @@ type mxItem struct {
 	Ties     []struct {
 		Type string `xml:"type,attr"`
 	} `xml:"tie"`
-	Divisions int `xml:"divisions"`
-	Beats     int `xml:"time>beats"`
-	BeatType  int `xml:"time>beat-type"`
+	Divisions int  `xml:"divisions"`
+	Beats     int  `xml:"time>beats"`
+	BeatType  int  `xml:"time>beat-type"`
 	Fifths    *int `xml:"key>fifths"`
 	Staves    int  `xml:"staves"`
 	Sound     *struct {

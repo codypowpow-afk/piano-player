@@ -38,23 +38,23 @@ type Lesson struct {
 	K       int          // next step to play
 	Waiting bool
 
-	LoopOn         bool
-	LoopA, LoopB   float64
-	LoopBars       int
+	LoopOn       bool
+	LoopA, LoopB float64
+	LoopBars     int
 
 	hit     [128]int64 // sequence number of the last press of each key
 	seq     int64
 	armSeq  int64
-	StepHit []bool       // per learner step: completed correctly
+	StepHit []bool // per learner step: completed correctly
 
 	autoIdx  int
 	sounding map[int]float64 // auto-played pitch -> end beat
 	sound    Sounder
 
 	Correct, Wrong, Skipped int
-	WrongFlash               [128]float64 // time left to show a wrong key
-	GoodFlash                [128]float64
-	Finished                 bool
+	WrongFlash              [128]float64 // time left to show a wrong key
+	GoodFlash               [128]float64
+	Finished                bool
 }
 
 func NewLesson(s *score.Song, snd Sounder) *Lesson {

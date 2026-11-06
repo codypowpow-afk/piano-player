@@ -32,12 +32,12 @@ type Head struct {
 
 // Accidental glyph found on the page.
 type Accidental struct {
-	Kind       int // 1 sharp, -1 flat, 2 natural
-	X0, X1     int
-	AnchorY    float64
-	Staff      int
-	Pos        int
-	Used       bool
+	Kind    int // 1 sharp, -1 flat, 2 natural
+	X0, X1  int
+	AnchorY float64
+	Staff   int
+	Pos     int
+	Used    bool
 }
 
 // ClefChange marks a clef that applies from X onward on one staff.
@@ -103,6 +103,7 @@ func AnalyzePage(full *Bitmap) *PageResult {
 	pr.findBarlines()
 	pr.findClefsAndKeys()
 	pr.findAccidentals()
+	pr.localAccidentals()
 	pr.findOttava()
 	pr.dropPreamble()
 	pr.assignPositions()
@@ -1233,4 +1234,98 @@ func (pr *PageResult) dropPreamble() {
 		}
 	}
 	pr.Heads = out
+}
+
+// localAccidentals looks immediately left of each notehead for the strokes of
+// a sharp, flat or natural. It works even when the accidental touches a
+// neighbouring stem or rest, which defeats component-based classification.
+func (pr *PageResult) localAccidentals() {
+	sp := pr.Space
+	type stroke struct {
+		x        float64
+		top, bot int
+	}
+	for _, h := range pr.Heads {
+		if h.Acc != 0 || h.Small {
+			continue
+		}
+		hw := math.Max(h.W/2, sp*0.6)
+		xr := int(h.X - hw - sp*0.08)
+		xl := int(h.X - hw - sp*1.9)
+		// stop at the previous notehead in the same staff (do not read its parts)
+		for _, o := range pr.Heads {
+			if o != h && o.Staff == h.Staff && o.X < h.X-hw && math.Abs(o.Y-h.Y) < sp*2.5 {
+				if ox := int(o.X + math.Max(o.W/2, sp*0.6)); ox > xl && ox < xr {
+					xl = ox
+				}
+			}
+		}
+		var strokes []stroke
+		for x := xr; x >= xl; x-- {
+			best := [2]int{0, -1}
+			for dy := -0.35; dy <= 0.35; dy += 0.1 {
+				s, e := pr.vrun(x, int(h.Y+dy*sp))
+				if e-s > best[1]-best[0] {
+					best = [2]int{s, e}
+				}
+			}
+			l := float64(best[1] - best[0] + 1)
+			if l < sp*1.25 || l > sp*3.4 {
+				continue
+			}
+			if n := len(strokes); n > 0 && strokes[n-1].x-float64(x) <= 2.5 {
+				st := &strokes[n-1]
+				st.x = float64(x)
+				if best[1]-best[0] > st.bot-st.top {
+					st.top, st.bot = best[0], best[1]
+				}
+				continue
+			}
+			strokes = append(strokes, stroke{float64(x), best[0], best[1]})
+		}
+		if len(strokes) == 0 {
+			continue
+		}
+		// strokes are ordered right-to-left; the accidental's right stroke is first
+		a := strokes[0]
+		hy := h.Y
+		if len(strokes) >= 2 {
+			b := strokes[1] // left stroke
+			gap := a.x - b.x
+			if gap >= sp*0.22 && gap <= sp*0.75 {
+				at, ab := float64(a.top), float64(a.bot)
+				bt, bb := float64(b.top), float64(b.bot)
+				// natural: left stroke from above down to about the head,
+				// right stroke from about the head down below it
+				if bt < hy-sp*0.6 && bb > hy-sp*0.5 && bb < hy+sp*0.95 &&
+					at > hy-sp*0.95 && at < hy+sp*0.5 && ab > hy+sp*0.6 &&
+					at-bt > sp*0.55 && ab-bb > sp*0.55 {
+					h.Acc = 2
+					continue
+				}
+				// sharp: two strokes spanning the head, similar extents
+				if at < hy-sp*0.5 && bt < hy-sp*0.5 && ab > hy+sp*0.5 && bb > hy+sp*0.5 &&
+					math.Abs(at-bt) < sp*0.6 && math.Abs(ab-bb) < sp*0.6 {
+					h.Acc = 1
+					continue
+				}
+			}
+		}
+		// flat: one stroke whose bottom is just below the head centre, with a
+		// bowl to its right at head height but nothing at the top
+		if float64(a.bot) > hy+sp*0.15 && float64(a.bot) < hy+sp*0.9 && float64(a.top) < hy-sp*1.2 {
+			bowl, top := 0, 0
+			for x := int(a.x) + 2; x <= int(a.x+sp*0.7); x++ {
+				for y := int(hy - sp*0.1); y <= int(hy+sp*0.3); y++ {
+					bowl += int(pr.Clean.At(x, y))
+				}
+				for y := int(hy - sp*1.3); y <= int(hy-sp*0.9); y++ {
+					top += int(pr.Clean.At(x, y))
+				}
+			}
+			if float64(bowl) > sp*sp*0.12 && top*3 < bowl {
+				h.Acc = -1
+			}
+		}
+	}
 }

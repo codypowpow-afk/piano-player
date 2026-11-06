@@ -251,9 +251,21 @@ func (f *pdfFile) pageImages(res pdfDict, depth int) []*pdfStream {
 	return out
 }
 
-// ExtractPages returns one binarized bitmap per PDF page (the largest image
-// on that page).
-func ExtractPages(data []byte) ([]*Bitmap, error) {
+// PageSource yields page bitmaps one at a time so that a long score never
+// has to be held in memory all at once.
+type PageSource struct {
+	f    *pdfFile
+	imgs []*pdfStream
+}
+
+// Len is the number of pages.
+func (ps *PageSource) Len() int { return len(ps.imgs) }
+
+// Page decodes page i (0-based).
+func (ps *PageSource) Page(i int) (*Bitmap, error) { return ps.f.decodeImage(ps.imgs[i]) }
+
+// OpenPDF finds the scanned page images of a PDF without decoding them.
+func OpenPDF(data []byte) (*PageSource, error) {
 	f, err := parsePDF(data)
 	if err != nil {
 		return nil, err
@@ -285,10 +297,20 @@ func ExtractPages(data []byte) ([]*Bitmap, error) {
 	if len(imgs) == 0 {
 		return nil, errors.New("this PDF has no scanned page images (it is probably a vector PDF exported from notation software) — export MIDI or MusicXML from that software instead, or export the pages as PNG")
 	}
+	return &PageSource{f: f, imgs: imgs}, nil
+}
+
+// ExtractPages returns one binarized bitmap per PDF page (the largest image
+// on that page).
+func ExtractPages(data []byte) ([]*Bitmap, error) {
+	ps, err := OpenPDF(data)
+	if err != nil {
+		return nil, err
+	}
 	var out []*Bitmap
 	var firstErr error
-	for _, s := range imgs {
-		bm, err := f.decodeImage(s)
+	for i := 0; i < ps.Len(); i++ {
+		bm, err := ps.Page(i)
 		if err != nil {
 			if firstErr == nil {
 				firstErr = err

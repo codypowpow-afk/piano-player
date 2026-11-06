@@ -1,6 +1,14 @@
+// omrdebug draws what the sheet-music reader found on one PDF page:
+//
+//	go run ./tools/omrdebug -o page5.png score.pdf 5
+//
+// red = notehead, orange = hollow notehead, green tick = stem side,
+// blue line = barline, green line = end of key signature, boxes = accidentals,
+// magenta bar = 8va range.
 package main
 
 import (
+	"flag"
 	"fmt"
 	"image/color"
 	"image/png"
@@ -11,7 +19,9 @@ import (
 )
 
 func main() {
-	data, err := os.ReadFile(os.Args[1])
+	out := flag.String("o", "omr_debug.png", "output PNG")
+	flag.Parse()
+	data, err := os.ReadFile(flag.Arg(0))
 	if err != nil {
 		panic(err)
 	}
@@ -19,7 +29,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	pg, _ := strconv.Atoi(os.Args[2])
+	pg, _ := strconv.Atoi(flag.Arg(1))
+	if pg < 1 || pg > len(pages) {
+		fmt.Println("page out of range")
+		os.Exit(1)
+	}
 	pr := omr.AnalyzePage(pages[pg-1])
 	fmt.Println("space", pr.Space, "staves", len(pr.Staves), "heads", len(pr.Heads), "accs", len(pr.Accs))
 	c := omr.NewDebugCanvas(pr.Clean)
@@ -73,7 +87,7 @@ func main() {
 		c.Line(r[0], y+1, r[1], y+1, color.RGBA{255, 0, 255, 255})
 		fmt.Printf("8va staff %d x %.0f-%.0f\n", pr.OttavaSt[k], r[0], r[1])
 	}
-	f, _ := os.Create("/tmp/dbg.png")
+	f, _ := os.Create(*out)
 	png.Encode(f, c)
 	f.Close()
 }

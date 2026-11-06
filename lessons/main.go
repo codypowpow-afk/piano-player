@@ -125,7 +125,7 @@ type Game struct {
 	down    [128]int // learner keys held (any source)
 	mouseNt int
 
-	presses chan int // MIDI thread -> lesson
+	presses  chan int // MIDI thread -> lesson
 	midiDown [128]bool
 	midiMu   sync.Mutex
 	pedal    bool
@@ -133,15 +133,15 @@ type Game struct {
 	prog    importProgress
 	results chan loadResult
 
-	ui     []uiBtn
-	last   time.Time
-	pulse  float64
-	keyX   [128]float32
-	black  [128]bool
+	ui    []uiBtn
+	last  time.Time
+	pulse float64
+	keyX  [128]float32
+	black [128]bool
 
 	face, faceSmall, faceBold, faceTitle, faceTiny text.Face
-	toastMsg                                     string
-	toastT                                       time.Time
+	toastMsg                                       string
+	toastT                                         time.Time
 }
 
 func isBlackNote(m int) bool {
@@ -154,14 +154,14 @@ func isBlackNote(m int) bool {
 
 func newGame() *Game {
 	g := &Game{
-		eng:     synth.NewEngine(assets.FS),
-		base:    48,
-		held:    map[ebiten.Key]int{},
-		mouseNt: -1,
-		ppb:     110,
-		presses: make(chan int, 256),
-		results: make(chan loadResult, 4),
-		names:   true,
+		eng:      synth.NewEngine(assets.FS),
+		base:     48,
+		held:     map[ebiten.Key]int{},
+		mouseNt:  -1,
+		ppb:      110,
+		presses:  make(chan int, 256),
+		results:  make(chan loadResult, 4),
+		names:    true,
 		pctTempo: 1,
 	}
 	wi := 0

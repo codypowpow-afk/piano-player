@@ -6,7 +6,10 @@ import (
 	"github.com/codypowpow-afk/piano-player/score"
 )
 
-type fakeSound struct{ on map[int]bool; count int }
+type fakeSound struct {
+	on    map[int]bool
+	count int
+}
 
 func (f *fakeSound) NoteOn(m int, v float64) { f.on[m] = true; f.count++ }
 func (f *fakeSound) NoteOff(m int)           { delete(f.on, m) }
