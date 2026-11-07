@@ -6,42 +6,11 @@ One `.exe` with the instrument recordings built in, no installer, works offline.
 **Download:** [`download/PianoPlayer.exe`](../../raw/main/download/PianoPlayer.exe), then double-click it.
 (Windows SmartScreen may warn because the exe isn't code-signed: click **More info → Run anyway**.)
 
-## Piano Lessons (new): learn from sheet music
+## Learn to play: Piano Lessons
 
-`download/PianoLessons.exe` is a second app built on the same piano engine. Give it sheet music
-and it turns the notes into **falling blocks that land on the keys you need to play**. In
-**Wait** mode it stops at every note or chord until you press the right keys, then moves on.
-
-- **Open:** drag a file onto the window, use **Open file…** (`Ctrl+O`), or drop the file onto the exe.
-  - **Scanned PDF** or **page images (PNG/JPG)**: read by the built-in sheet-music reader (no
-    other software needed; a 12-page score takes about 10 s).
-  - **MIDI** and **MusicXML (.musicxml / .mxl)**: exact, use these when you have them.
-- Comes with **Chopin's Nocturnes Op. 9** (all three), read from a scanned PDF.
-- Right hand is teal, left hand amber. Each hand has its own switch: **You** (you play it),
-  **Auto** (the app plays it) or **Off** (silent), so you can learn the melody and the chords
-  separately. Loop 1–8 bars, slow the tempo down, or press **Listen** to hear the piece.
-- **Small MIDI keyboard?** Shift the keyboard by octaves (`Shift+←/→` or the − / + buttons), or
-  turn on **Any octave** so the right note in any octave counts.
-- Imported pieces are kept in the **Library** (`F10`). **Export MIDI** saves what was read, so
-  you can fix it in any notation program and open the corrected file again.
-
-| Key | Action |
-|-----|--------|
-| `Space` | play / pause |
-| `Home` | restart |
-| `Tab` | skip the current note (for a note the reader got wrong) |
-| `F1` / `F5` | right hand / left hand: You → Auto → Off |
-| `F2` / `F3` / `F4` / `F6` | wait mode · listen · loop · any octave |
-| `Shift+←` `Shift+→` | MIDI keyboard octave down / up |
-| `↑` `↓` | tempo |
-| `PgUp` `PgDn` | previous / next bar · mouse wheel scrolls through the song while paused |
-| `F7` `F8` · `F9` · `F10` | sound · note names · library |
-| `Z`…`/`, `Q`…`]`, `←` `→`, `Shift` | computer-keyboard piano, its octave, sustain |
-
-The sheet-music reader works on clean engraved scans. It reliably finds staves, clefs, key
-signatures, barlines, noteheads and chords. Accidentals inside a bar and complex rhythms are
-harder, so some notes may be wrong: press `Tab` to skip one, or use MIDI/MusicXML for perfect
-input. See [`PIANO_LESSONS_NOTES.md`](PIANO_LESSONS_NOTES.md) for how it works.
+Want to learn pieces from sheet music? [**Piano Lessons**](https://github.com/codypowpow-afk/piano-lessons)
+is a separate app built on this piano engine. It turns scanned PDFs, MIDI or MusicXML into
+falling notes that wait for you to play them.
 
 ## Sounds (24 presets)
 
@@ -159,7 +128,6 @@ Needs Go 1.22+. The exe is cross-compiled; no Windows machine needed.
 
 ```
 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -H=windowsgui" -o dist/PianoPlayer.exe .
-GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -H=windowsgui" -o dist/PianoLessons.exe ./lessons
 ```
 
 The samples in `assets/` are built from the original libraries by
