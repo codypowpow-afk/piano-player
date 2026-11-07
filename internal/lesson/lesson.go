@@ -8,14 +8,14 @@ import (
 	"github.com/codypowpow-afk/piano-player/score"
 )
 
-// Hands the learner plays.
+// What happens to each hand's notes.
 const (
-	HandsBoth = iota
-	HandsRight
-	HandsLeft
+	ModeYou  = iota // the learner plays them
+	ModeAuto        // the app plays them
+	ModeOff         // silent (shown faintly)
 )
 
-var HandsNames = []string{"Both hands", "Right hand", "Left hand"}
+var ModeNames = []string{"You", "Auto", "Off"}
 
 // Sounder is what a lesson needs from the audio engine.
 type Sounder interface {
@@ -26,13 +26,14 @@ type Sounder interface {
 // Lesson is the play-along state machine: song position, which notes the
 // learner must play next, and auto-playing everything else.
 type Lesson struct {
-	Song   *score.Song
-	Hands  int
-	Wait   bool // stop at each step until the right keys are pressed
-	Listen bool // demo: the app plays everything
-	Tempo  float64
-	Pos    float64 // beats
-	Play   bool
+	Song      *score.Song
+	Mode      [2]int // per hand (score.Right, score.Left)
+	AnyOctave bool   // accept the right note name in any octave (small keyboards)
+	Wait      bool   // stop at each step until the right keys are pressed
+	Listen    bool   // demo: the app plays everything
+	Tempo     float64
+	Pos       float64 // beats
+	Play      bool
 
 	Steps   []score.Step // the learner's steps
 	K       int          // next step to play
@@ -43,6 +44,7 @@ type Lesson struct {
 	LoopBars     int
 
 	hit     [128]int64 // sequence number of the last press of each key
+	hitPC   [12]int64  // ... and of each pitch class
 	seq     int64
 	armSeq  int64
 	StepHit []bool // per learner step: completed correctly
@@ -67,13 +69,13 @@ func NewLesson(s *score.Song, snd Sounder) *Lesson {
 }
 
 func (l *Lesson) handMask() int {
-	switch l.Hands {
-	case HandsRight:
-		return 1 << score.Right
-	case HandsLeft:
-		return 1 << score.Left
+	m := 0
+	for h := 0; h < 2; h++ {
+		if l.Mode[h] == ModeYou {
+			m |= 1 << h
+		}
 	}
-	return 3
+	return m
 }
 
 // Learner reports whether note n is the learner's to play.
@@ -81,8 +83,11 @@ func (l *Lesson) Learner(n *score.Note) bool {
 	if l.Listen {
 		return false
 	}
-	return l.handMask()&(1<<n.Hand) != 0
+	return l.Mode[min(n.Hand, 1)] == ModeYou
 }
+
+// Muted reports whether note n's hand is switched off.
+func (l *Lesson) Muted(n *score.Note) bool { return l.Mode[min(n.Hand, 1)] == ModeOff }
 
 // Rebuild recomputes the learner steps (after changing hands).
 func (l *Lesson) Rebuild() {
@@ -91,9 +96,27 @@ func (l *Lesson) Rebuild() {
 	l.Seek(l.Pos)
 }
 
-func (l *Lesson) SetHands(h int) {
-	l.Hands = h
+// SetMode sets what happens to one hand's notes.
+func (l *Lesson) SetMode(hand, mode int) {
+	l.Mode[hand] = mode
 	l.Rebuild()
+}
+
+// CycleMode steps one hand through You -> Auto -> Off.
+func (l *Lesson) CycleMode(hand int) { l.SetMode(hand, (l.Mode[hand]+1)%3) }
+
+func (l *Lesson) same(a, b int) bool {
+	if l.AnyOctave {
+		return a%12 == b%12
+	}
+	return a == b
+}
+
+func (l *Lesson) lastHit(p int) int64 {
+	if l.AnyOctave {
+		return l.hitPC[p%12]
+	}
+	return l.hit[p]
 }
 
 func (l *Lesson) SetListen(on bool) {
@@ -171,6 +194,7 @@ func (l *Lesson) Press(p int) {
 	}
 	l.seq++
 	l.hit[p] = l.seq
+	l.hitPC[p%12] = l.seq
 	k := l.Current()
 	if k < 0 {
 		return
@@ -179,13 +203,13 @@ func (l *Lesson) Press(p int) {
 	// is it part of the current (or the next) step?
 	ok := false
 	for _, i := range st.Notes {
-		if l.Song.Notes[i].Pitch == p {
+		if l.same(l.Song.Notes[i].Pitch, p) {
 			ok = true
 		}
 	}
 	if !ok && k+1 < len(l.Steps) && l.Steps[k+1].Start-st.Start < 0.5 {
 		for _, i := range l.Steps[k+1].Notes {
-			if l.Song.Notes[i].Pitch == p {
+			if l.same(l.Song.Notes[i].Pitch, p) {
 				ok = true
 			}
 		}
@@ -204,7 +228,7 @@ func (l *Lesson) Press(p int) {
 func (l *Lesson) stepSatisfied(k int) (bool, int64) {
 	var last int64
 	for _, i := range l.Steps[k].Notes {
-		h := l.hit[l.Song.Notes[i].Pitch]
+		h := l.lastHit(l.Song.Notes[i].Pitch)
 		if h <= l.armSeq {
 			return false, 0
 		}
@@ -302,7 +326,7 @@ func (l *Lesson) autoPlay() {
 	for l.autoIdx < len(notes) && notes[l.autoIdx].Start <= l.Pos {
 		n := &notes[l.autoIdx]
 		l.autoIdx++
-		if l.Learner(n) {
+		if l.Learner(n) || l.Muted(n) {
 			continue
 		}
 		if _, on := l.sounding[n.Pitch]; on {

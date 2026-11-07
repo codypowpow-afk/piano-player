@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -127,6 +128,8 @@ type Game struct {
 
 	presses  chan int // MIDI thread -> lesson
 	midiDown [128]bool
+	midiPlay [128]int // physical MIDI key -> sounding note+1 (survives octave shifts)
+	midiOct  int32    // MIDI octave shift (atomic)
 	midiMu   sync.Mutex
 	pedal    bool
 
@@ -242,7 +245,8 @@ func (g *Game) openEntry(e *LibEntry, piece int) {
 	l := lesson.NewLesson(e.Songs[piece], g.eng)
 	if old != nil {
 		l.Wait = old.Wait
-		l.Hands = old.Hands
+		l.Mode = old.Mode
+		l.AnyOctave = old.AnyOctave
 		l.Rebuild()
 	}
 	l.Tempo = l.Song.Tempo * g.pctTempo
@@ -274,16 +278,26 @@ func (g *Game) importFiles(files []inFile) {
 }
 
 // handleMIDI runs on the MIDI thread: sound immediately, tell the lesson later.
+// Notes are shifted by the MIDI octave setting, so a small keyboard can reach
+// the whole piano.
 func (g *Game) handleMIDI(status, d1, d2 byte) {
 	switch status & 0xF0 {
 	case 0x90:
 		if d2 > 0 && d1 < 128 {
-			g.eng.NoteOn(int(d1), math.Pow(float64(d2)/127, 1.0))
+			n := int(d1) + 12*int(atomic.LoadInt32(&g.midiOct))
+			if n < 0 || n > 127 {
+				return
+			}
 			g.midiMu.Lock()
-			g.midiDown[d1] = true
+			if old := g.midiPlay[d1]; old > 0 {
+				g.midiDown[old-1] = false
+			}
+			g.midiPlay[d1] = n + 1
+			g.midiDown[n] = true
 			g.midiMu.Unlock()
+			g.eng.NoteOn(n, math.Pow(float64(d2)/127, 1.0))
 			select {
-			case g.presses <- int(d1):
+			case g.presses <- n:
 			default:
 			}
 			return
@@ -291,16 +305,41 @@ func (g *Game) handleMIDI(status, d1, d2 byte) {
 		fallthrough
 	case 0x80:
 		if d1 < 128 {
-			g.eng.NoteOff(int(d1))
 			g.midiMu.Lock()
-			g.midiDown[d1] = false
+			n := g.midiPlay[d1] - 1
+			g.midiPlay[d1] = 0
+			if n >= 0 {
+				g.midiDown[n] = false
+			}
 			g.midiMu.Unlock()
+			if n >= 0 {
+				g.eng.NoteOff(n)
+			}
 		}
 	case 0xB0:
 		if d1 == 64 {
 			g.eng.SetPedal(d2 >= 64)
 		}
 	}
+}
+
+func (g *Game) shiftMIDI(d int) {
+	v := atomic.LoadInt32(&g.midiOct) + int32(d)
+	if v < -4 || v > 4 {
+		return
+	}
+	atomic.StoreInt32(&g.midiOct, v)
+	g.toast(fmt.Sprintf("MIDI keyboard octave %+d", v))
+}
+
+func (g *Game) cycleHand(h int) {
+	l := g.lesson
+	if l == nil {
+		return
+	}
+	l.CycleMode(h)
+	name := []string{"Right hand", "Left hand"}[h]
+	g.toast(name + ": " + map[int]string{lesson.ModeYou: "you play it", lesson.ModeAuto: "the app plays it", lesson.ModeOff: "off"}[l.Mode[h]])
 }
 
 func (g *Game) playKey(m int, vel float64) {
@@ -474,8 +513,11 @@ func (g *Game) keys() {
 		case jp(ebiten.KeyTab):
 			l.Skip()
 		case jp(ebiten.KeyF1):
-			l.SetHands((l.Hands + 1) % 3)
-			g.toast("You play: " + lesson.HandsNames[l.Hands])
+			g.cycleHand(score.Right)
+		case jp(ebiten.KeyF5):
+			g.cycleHand(score.Left)
+		case jp(ebiten.KeyF6):
+			l.AnyOctave = !l.AnyOctave
 		case jp(ebiten.KeyF2):
 			l.Wait = !l.Wait
 		case jp(ebiten.KeyF3):
@@ -510,13 +552,22 @@ func (g *Game) keys() {
 			g.eng.AllNotesOff()
 		}
 	}
-	if jp(ebiten.KeyArrowLeft) && g.base > 24 {
-		g.base -= 12
-		g.releaseAll()
+	shiftKey := ebiten.IsKeyPressed(ebiten.KeyShift)
+	if jp(ebiten.KeyArrowLeft) {
+		if shiftKey {
+			g.shiftMIDI(-1)
+		} else if g.base > 24 {
+			g.base -= 12
+			g.releaseAll()
+		}
 	}
-	if jp(ebiten.KeyArrowRight) && g.base < 84 {
-		g.base += 12
-		g.releaseAll()
+	if jp(ebiten.KeyArrowRight) {
+		if shiftKey {
+			g.shiftMIDI(1)
+		} else if g.base < 84 {
+			g.base += 12
+			g.releaseAll()
+		}
 	}
 	if ctrl {
 		return
@@ -682,8 +733,10 @@ func (g *Game) buildUI() {
 	}
 	add(x, 92, y, waitLbl, l.Wait, func() { l.Wait = !l.Wait })
 	x += 98
-	add(x, 120, y, lesson.HandsNames[l.Hands], l.Hands != lesson.HandsBoth, func() { l.SetHands((l.Hands + 1) % 3) })
-	x += 126
+	add(x, 108, y, "Right: "+lesson.ModeNames[l.Mode[score.Right]], l.Mode[score.Right] == lesson.ModeYou, func() { g.cycleHand(score.Right) })
+	x += 112
+	add(x, 108, y, "Left: "+lesson.ModeNames[l.Mode[score.Left]], l.Mode[score.Left] == lesson.ModeYou, func() { g.cycleHand(score.Left) })
+	x += 114
 	add(x, 74, y, "Listen", l.Listen, func() { l.SetListen(!l.Listen) })
 	x += 80
 	loopLbl := fmt.Sprintf("Loop %d bars", l.LoopBars)
@@ -705,6 +758,14 @@ func (g *Game) buildUI() {
 	x += 88
 	add(x, 30, y, "◄", false, func() { g.setPreset(g.preset - 1) })
 	add(right-30, 30, y, "►", false, func() { g.setPreset(g.preset + 1) })
+	// small-keyboard helpers, on the status row
+	sy := float32(kbY + whiteH + 6)
+	small := func(x, w float32, label string, on bool, act func()) {
+		g.ui = append(g.ui, uiBtn{x: x, y: sy, w: w, h: 24, label: label, on: on, act: act})
+	}
+	small(540, 24, "−", false, func() { g.shiftMIDI(-1) })
+	small(714, 24, "+", false, func() { g.shiftMIDI(1) })
+	small(748, 100, "Any octave", l.AnyOctave, func() { l.AnyOctave = !l.AnyOctave })
 }
 
 // ---------------------------------------------------------------- draw
@@ -743,7 +804,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if l != nil {
 		// tempo readout between − and +
 		for _, b := range g.ui {
-			if b.label == "−" {
+			if b.label == "−" && b.y == ctlY {
 				g.drawText(screen, fmt.Sprintf("Tempo %d%%", int(math.Round(g.pctTempo*100))), g.faceBold, float64(b.x+80), ctlY+8, colText, text.AlignCenter)
 			}
 			if b.label == "◄" && b.y == ctlY {
@@ -783,7 +844,7 @@ func (g *Game) button(dst *ebiten.Image, b uiBtn) {
 		c = colPanelHi
 	}
 	rect(dst, b.x, b.y, b.w, b.h, c)
-	g.drawText(dst, b.label, g.faceBold, float64(b.x+b.w/2), float64(b.y+8), tc, text.AlignCenter)
+	g.drawText(dst, b.label, g.faceBold, float64(b.x+b.w/2), float64(b.y+(b.h-16)/2), tc, text.AlignCenter)
 }
 
 func (g *Game) drawProgress(screen *ebiten.Image) {
@@ -867,6 +928,10 @@ func (g *Game) drawFall(screen *ebiten.Image) {
 		c := colHand[h]
 		if !learner {
 			c = colHandLo[h]
+		}
+		if l.Muted(n) {
+			vector.StrokeRect(screen, x, y1, w, y0-y1, 1, colHandLo[h], false)
+			continue
 		}
 		rect(screen, x, y1, w, y0-y1, c)
 		if curSet[i] {
@@ -976,15 +1041,21 @@ func (g *Game) drawStatus(screen *ebiten.Image) {
 		}
 		g.drawText(screen, st, g.faceBold, kbX, y, colText, text.AlignStart)
 	}
+	if l != nil {
+		g.drawText(screen, fmt.Sprintf("MIDI octave %+d", atomic.LoadInt32(&g.midiOct)), g.faceBold, 627, y, colText, text.AlignCenter)
+	}
 	open, _ := g.midiIn.Devices()
-	midi := "No MIDI keyboard — computer keys Z…/ and Q…] (← → octave) or mouse"
+	midi := "No MIDI keyboard — use Z…/ Q…] (← → octave) or the mouse"
 	mc := color.Color(colDim)
 	if len(open) > 0 {
 		midi = "MIDI: " + strings.Join(open, ", ")
+		if r := []rune(midi); len(r) > 60 {
+			midi = string(r[:59]) + "…"
+		}
 		mc = colGood
 	}
 	g.drawText(screen, midi, g.face, screenW-24, y, mc, text.AlignEnd)
-	help := "Space play/pause · Home restart · Tab skip a note · F1 hands · F2 wait · F3 listen · F4 loop · ↑↓ tempo · PgUp/PgDn bar · F7/F8 sound · F9 names · −/scroll zoom · Shift = pedal · Ctrl+O open"
+	help := "Space play/pause · Home restart · Tab skip · F1 right hand · F5 left hand · F2 wait · F3 listen · F4 loop · F6 any octave · Shift+← → MIDI octave · ↑↓ tempo · PgUp/PgDn bar · F7/F8 sound · F9 names · Ctrl+O open"
 	g.drawText(screen, help, g.faceSmall, screenW/2, y+22, colDim, text.AlignCenter)
 }
 

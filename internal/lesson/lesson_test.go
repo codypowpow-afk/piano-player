@@ -36,7 +36,7 @@ func run(l *Lesson, secs float64) {
 func TestWaitMode(t *testing.T) {
 	snd := &fakeSound{on: map[int]bool{}}
 	l := NewLesson(testSong(), snd)
-	l.SetHands(HandsRight)
+	l.SetMode(score.Left, ModeAuto)
 	l.Restart()
 	l.Play = true
 	run(l, 3)
@@ -111,5 +111,28 @@ func TestListen(t *testing.T) {
 	run(l, 6)
 	if snd.count != 6 || !l.Finished {
 		t.Fatalf("listen should play all 6 notes, got %d finished=%v", snd.count, l.Finished)
+	}
+}
+
+func TestHandOffAndAnyOctave(t *testing.T) {
+	snd := &fakeSound{on: map[int]bool{}}
+	l := NewLesson(testSong(), snd)
+	l.SetMode(score.Left, ModeOff)
+	l.AnyOctave = true
+	l.Restart()
+	l.Play = true
+	run(l, 3)
+	if snd.count != 0 {
+		t.Fatalf("left hand is off: nothing should sound, got %d", snd.count)
+	}
+	l.Press(72) // C5 instead of C4
+	if l.K != 1 {
+		t.Fatalf("any-octave press not accepted")
+	}
+	// melody-only learning: right hand off, left hand yours
+	l2 := NewLesson(testSong(), snd)
+	l2.SetMode(score.Right, ModeOff)
+	if len(l2.Steps) != 2 {
+		t.Fatalf("left-hand steps = %d, want 2", len(l2.Steps))
 	}
 }

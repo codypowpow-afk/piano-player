@@ -21,7 +21,10 @@ piano and waits for you to play each note. Written at the end of the build sessi
    are dimmed. The current step is outlined and its keys are lit on the keyboard.
    - **Wait mode**: the song stops at each step until every key of that step has been pressed
      (a fresh press is needed, so repeated notes count).
-   - **Hands**: learn one hand while the app plays the other.
+   - **Hands**: each hand is **You** / **Auto** / **Off** (F1 right, F5 left). Off hands are
+     silent and drawn as outlines, so melody and chords can be learned separately.
+   - **Small keyboards**: MIDI octave shift −4…+4 (Shift+←/→; a key released after a shift
+     still stops the note it started) and **Any octave** (F6), which matches by note name.
    - **Listen**: the app plays everything.
    - **Loop** 1/2/4/8 bars, **tempo** 25–150 %, **Skip** (Tab) a note the reader got wrong.
    - Scoring: right notes, wrong notes (only counted near a step), skipped, accuracy.

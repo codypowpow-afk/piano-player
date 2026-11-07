@@ -17,8 +17,11 @@ and it turns the notes into **falling blocks that land on the keys you need to p
     other software needed; a 12-page score takes about 10 s).
   - **MIDI** and **MusicXML (.musicxml / .mxl)**: exact, use these when you have them.
 - Comes with **Chopin's Nocturnes Op. 9** (all three), read from a scanned PDF.
-- Right hand is teal, left hand amber. Practise one hand while the app plays the other, loop
-  1–8 bars, slow the tempo down, or press **Listen** to hear the piece.
+- Right hand is teal, left hand amber. Each hand has its own switch: **You** (you play it),
+  **Auto** (the app plays it) or **Off** (silent), so you can learn the melody and the chords
+  separately. Loop 1–8 bars, slow the tempo down, or press **Listen** to hear the piece.
+- **Small MIDI keyboard?** Shift the keyboard by octaves (`Shift+←/→` or the − / + buttons), or
+  turn on **Any octave** so the right note in any octave counts.
 - Imported pieces are kept in the **Library** (`F10`). **Export MIDI** saves what was read, so
   you can fix it in any notation program and open the corrected file again.
 
@@ -27,11 +30,13 @@ and it turns the notes into **falling blocks that land on the keys you need to p
 | `Space` | play / pause |
 | `Home` | restart |
 | `Tab` | skip the current note (for a note the reader got wrong) |
-| `F1` / `F2` / `F3` / `F4` | hands (both, right, left) · wait mode · listen · loop |
+| `F1` / `F5` | right hand / left hand: You → Auto → Off |
+| `F2` / `F3` / `F4` / `F6` | wait mode · listen · loop · any octave |
+| `Shift+←` `Shift+→` | MIDI keyboard octave down / up |
 | `↑` `↓` | tempo |
 | `PgUp` `PgDn` | previous / next bar · mouse wheel scrolls through the song while paused |
 | `F7` `F8` · `F9` · `F10` | sound · note names · library |
-| `Z`…`/`, `Q`…`]`, `←` `→`, `Shift` | computer-keyboard piano, octave, sustain |
+| `Z`…`/`, `Q`…`]`, `←` `→`, `Shift` | computer-keyboard piano, its octave, sustain |
 
 The sheet-music reader works on clean engraved scans. It reliably finds staves, clefs, key
 signatures, barlines, noteheads and chords. Accidentals inside a bar and complex rhythms are
